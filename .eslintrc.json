@@ -1,0 +1,7 @@
+{
+  "extends": "next/core-web-vitals",
+  "rules": {
+    "react/no-inline-styles": "off",
+    "@next/next/no-css-tags": "off"
+  }
+}
