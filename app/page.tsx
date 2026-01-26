@@ -494,10 +494,10 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header Banner */}
-      <header className="bg-foreground text-background py-8 px-4">
+      <header className="bg-foreground text-background py-6 px-3 sm:py-8 sm:px-4">
         <div className="mx-auto max-w-5xl text-center">
-          <p className="text-sm opacity-80 mb-2">MyTaskFlow</p>
-          <h1 className="text-xl font-medium text-balance">
+          <p className="text-xs sm:text-sm opacity-80 mb-2">MyTaskFlow</p>
+          <h1 className="text-lg sm:text-xl font-medium text-balance">
             Organize seus hábitos e conquiste seus objetivos
           </h1>
         </div>
@@ -505,36 +505,36 @@ export default function HomePage() {
       
       {/* Stats Bar */}
       <div className="border-b border-border bg-card">
-        <div className="mx-auto max-w-5xl px-4 py-3">
-          <div className="flex items-center justify-between gap-4 text-sm">
-            <div className="flex items-center gap-2">
-              <Zap className="h-4 w-4 text-accent" />
+        <div className="mx-auto max-w-5xl px-3 py-2 sm:px-4 sm:py-3">
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:gap-4 text-xs sm:text-sm">
+            <div className="flex items-center gap-1 sm:gap-2">
+              <Zap className="h-3 w-3 sm:h-4 sm:w-4 text-accent flex-shrink-0" />
               <span className="font-medium">{stats?.total_points || 0}</span>
-              <span className="text-muted-foreground">pontos</span>
+              <span className="text-muted-foreground hidden sm:inline">pontos</span>
             </div>
-            <div className="flex items-center gap-2">
-              <Flame className="h-4 w-4 text-accent" />
+            <div className="flex items-center gap-1 sm:gap-2">
+              <Flame className="h-3 w-3 sm:h-4 sm:w-4 text-accent flex-shrink-0" />
               <span className="font-medium">{stats?.current_streak || 0}</span>
-              <span className="text-muted-foreground">sequencia</span>
+              <span className="text-muted-foreground hidden sm:inline">sequencia</span>
             </div>
-            <div className="flex items-center gap-2">
-              <Trophy className="h-4 w-4 text-accent" />
+            <div className="flex items-center gap-1 sm:gap-2">
+              <Trophy className="h-3 w-3 sm:h-4 sm:w-4 text-accent flex-shrink-0" />
               <span className="font-medium">{stats?.longest_streak || 0}</span>
-              <span className="text-muted-foreground">recorde</span>
+              <span className="text-muted-foreground hidden sm:inline">recorde</span>
             </div>
-            <div className="flex items-center gap-2">
-              <Target className="h-4 w-4 text-accent" />
+            <div className="flex items-center gap-1 sm:gap-2">
+              <Target className="h-3 w-3 sm:h-4 sm:w-4 text-accent flex-shrink-0" />
               <span className="font-medium">{monthlyProgress}%</span>
-              <span className="text-muted-foreground">mes</span>
+              <span className="text-muted-foreground hidden sm:inline">mes</span>
             </div>
           </div>
         </div>
       </div>
       
-      <main className="mx-auto max-w-5xl px-4 py-6">
-        <div className="space-y-6">
+      <main className="mx-auto max-w-5xl px-3 py-4 sm:px-4 sm:py-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Habit Grid + Side Analysis */}
-          <div className="grid gap-4 sm:gap-6 lg:grid-cols-[2fr,1.1fr] items-start">
+          <div className="grid gap-3 sm:gap-4 lg:gap-6 lg:grid-cols-[2fr,1.1fr] items-start">
             <HabitGrid
               habits={habits}
               completions={completions}
@@ -559,7 +559,7 @@ export default function HomePage() {
           <ProgressLineChart habits={habits} completions={completions} />
           
           {/* Rewards and Discipline */}
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
             <RewardsPanel
               rewards={rewards}
               stats={stats || null}
