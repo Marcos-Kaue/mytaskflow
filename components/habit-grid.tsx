@@ -239,11 +239,12 @@ export function HabitGrid({
       </div>
       
       {/* Grid Container - Desktop Version */}
-      <div className="hidden sm:block overflow-x-auto pb-4">
-        <table 
-          className="border-collapse text-xs w-full"
-          role="table"
-        >
+      <div className="hidden sm:block w-full overflow-x-auto pb-4 -mx-3 sm:mx-0 px-3 sm:px-0">
+        <div className="min-w-min">
+          <table 
+            className="border-collapse text-xs w-full"
+            role="table"
+          >
           {/* Week Headers Row */}
           <thead>
             <tr>
@@ -440,6 +441,7 @@ export function HabitGrid({
             </tr>
           </tbody>
         </table>
+        </div>
       </div>
 
       {/* Mobile Version - Single Week View */}
