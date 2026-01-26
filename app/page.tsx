@@ -492,9 +492,10 @@ export default function HomePage() {
   })()
 
   return (
+    <div className="w-screen overflow-x-hidden">
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header Banner */}
-      <header className="bg-foreground text-background py-6 sm:py-8 px-4 w-full">
+      <header className="bg-foreground text-background py-6 sm:py-8 w-full">
         <div className="mx-auto max-w-5xl text-center px-3 sm:px-4">
           <p className="text-xs sm:text-sm opacity-80 mb-2">MyTaskFlow</p>
           <h1 className="text-lg sm:text-xl font-medium text-balance">
@@ -505,7 +506,7 @@ export default function HomePage() {
       
       {/* Stats Bar */}
       <div className="border-b border-border bg-card w-full">
-        <div className="mx-auto max-w-5xl px-3 py-2 sm:px-4 sm:py-3">
+        <div className="mx-auto max-w-5xl px-3 py-2 sm:px-4 sm:py-3 w-full">
           <div className="grid grid-cols-2 gap-3 sm:flex sm:gap-6 text-xs sm:text-sm">
             <div className="flex items-center gap-1 sm:gap-2">
               <Zap className="h-3 w-3 sm:h-4 sm:w-4 text-accent flex-shrink-0" />
@@ -579,6 +580,7 @@ export default function HomePage() {
           </div>
         </div>
       </main>
+    </div>
     </div>
   )
 }
