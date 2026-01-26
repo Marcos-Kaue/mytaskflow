@@ -191,7 +191,7 @@ export function HabitGrid({
   return (
     <div className="space-y-4">
       {/* Stats Header */}
-      <div className="flex justify-center gap-16 py-4 border-b border-border">
+      <div className="flex justify-center gap-8 sm:gap-16 py-3 sm:py-4 border-b border-border px-2">
         <div className="text-center">
           <div className="text-xs text-muted-foreground">Numero de Habitos</div>
           <div className="text-2xl font-bold">{habits.length}</div>

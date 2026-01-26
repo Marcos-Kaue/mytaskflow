@@ -37,9 +37,11 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="pt-BR">
-      <body className="font-sans antialiased overflow-x-hidden">
-        {children}
+    <html lang="pt-BR" className="h-full">
+      <body className="font-sans antialiased overflow-x-hidden h-full">
+        <div className="min-h-full flex flex-col">
+          {children}
+        </div>
         <Toaster />
         <Analytics />
       </body>
