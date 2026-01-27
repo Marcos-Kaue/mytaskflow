@@ -22,10 +22,10 @@ import { cn } from '@/lib/utils'
 interface RewardsPanelProps {
   rewards: Reward[]
   stats: UserStats | null
-  onCreateReward: (reward: Partial<Reward>) => Promise<void> | void
-  onUpdateReward: (rewardId: string, reward: Partial<Reward>) => Promise<void> | void
-  onDeleteReward: (rewardId: string) => Promise<void> | void
-  onClaimReward: (rewardId: string) => Promise<void> | void
+  onCreateReward: (reward: Partial<Reward>) => void
+  onUpdateReward: (rewardId: string, reward: Partial<Reward>) => void
+  onDeleteReward: (rewardId: string) => void
+  onClaimReward: (rewardId: string) => void
 }
 
 const rewardIcons = [
@@ -40,7 +40,6 @@ const rewardIcons = [
 export function RewardsPanel({ rewards, stats, onCreateReward, onUpdateReward, onDeleteReward, onClaimReward }: RewardsPanelProps) {
   const [open, setOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
-  const [loading, setLoading] = useState(false)
   const [editingReward, setEditingReward] = useState<Reward | null>(null)
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
@@ -50,42 +49,33 @@ export function RewardsPanel({ rewards, stats, onCreateReward, onUpdateReward, o
 
   const currentPoints = stats?.total_points || 0
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!name.trim() || loading) return
+    if (!name.trim()) return
     
-    setLoading(true)
-    try {
-      if (editingReward) {
-        await onUpdateReward(editingReward.id, {
-          name: name.trim(),
-          description: description.trim() || null,
-          icon,
-          points_required: pointsRequired,
-        })
-        setEditingReward(null)
-      } else {
-        await onCreateReward({
-          name: name.trim(),
-          description: description.trim() || null,
-          icon,
-          points_required: pointsRequired,
-        })
-      }
-      
-      await new Promise(resolve => setTimeout(resolve, 100))
-      
-      setName('')
-      setDescription('')
-      setIcon('movie')
-      setPointsRequired(100)
-      setOpen(false)
-      setEditOpen(false)
-    } catch (error) {
-      console.error('Erro ao criar recompensa:', error)
-    } finally {
-      setLoading(false)
+    if (editingReward) {
+      onUpdateReward(editingReward.id, {
+        name: name.trim(),
+        description: description.trim() || null,
+        icon,
+        points_required: pointsRequired,
+      })
+      setEditingReward(null)
+    } else {
+      onCreateReward({
+        name: name.trim(),
+        description: description.trim() || null,
+        icon,
+        points_required: pointsRequired,
+      })
     }
+    
+    setName('')
+    setDescription('')
+    setIcon('movie')
+    setPointsRequired(100)
+    setOpen(false)
+    setEditOpen(false)
   }
 
   const handleEdit = (reward: Reward) => {

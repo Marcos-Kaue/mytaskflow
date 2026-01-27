@@ -27,16 +27,15 @@ import { cn } from '@/lib/utils'
 
 interface DisciplinePanelProps {
   disciplines: Discipline[]
-  onCreateDiscipline: (discipline: Partial<Discipline>) => Promise<void> | void
-  onUpdateDiscipline: (disciplineId: string, discipline: Partial<Discipline>) => Promise<void> | void
-  onDeleteDiscipline: (disciplineId: string) => Promise<void> | void
-  onTriggerDiscipline: (disciplineId: string) => Promise<void> | void
+  onCreateDiscipline: (discipline: Partial<Discipline>) => void
+  onUpdateDiscipline: (disciplineId: string, discipline: Partial<Discipline>) => void
+  onDeleteDiscipline: (disciplineId: string) => void
+  onTriggerDiscipline: (disciplineId: string) => void
 }
 
 export function DisciplinePanel({ disciplines, onCreateDiscipline, onUpdateDiscipline, onDeleteDiscipline, onTriggerDiscipline }: DisciplinePanelProps) {
   const [open, setOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
-  const [loading, setLoading] = useState(false)
   const [editingDiscipline, setEditingDiscipline] = useState<Discipline | null>(null)
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
@@ -44,42 +43,33 @@ export function DisciplinePanel({ disciplines, onCreateDiscipline, onUpdateDisci
   const [penaltyValue, setPenaltyValue] = useState(50)
   const [isExpanded, setIsExpanded] = useState(false)
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!name.trim() || loading) return
+    if (!name.trim()) return
     
-    setLoading(true)
-    try {
-      if (editingDiscipline) {
-        await onUpdateDiscipline(editingDiscipline.id, {
-          name: name.trim(),
-          description: description.trim() || null,
-          penalty_type: penaltyType,
-          penalty_value: penaltyValue,
-        })
-        setEditingDiscipline(null)
-      } else {
-        await onCreateDiscipline({
-          name: name.trim(),
-          description: description.trim() || null,
-          penalty_type: penaltyType,
-          penalty_value: penaltyValue,
-        })
-      }
-      
-      await new Promise(resolve => setTimeout(resolve, 100))
-      
-      setName('')
-      setDescription('')
-      setPenaltyType('points')
-      setPenaltyValue(50)
-      setOpen(false)
-      setEditOpen(false)
-    } catch (error) {
-      console.error('Erro ao criar disciplina:', error)
-    } finally {
-      setLoading(false)
+    if (editingDiscipline) {
+      onUpdateDiscipline(editingDiscipline.id, {
+        name: name.trim(),
+        description: description.trim() || null,
+        penalty_type: penaltyType,
+        penalty_value: penaltyValue,
+      })
+      setEditingDiscipline(null)
+    } else {
+      onCreateDiscipline({
+        name: name.trim(),
+        description: description.trim() || null,
+        penalty_type: penaltyType,
+        penalty_value: penaltyValue,
+      })
     }
+    
+    setName('')
+    setDescription('')
+    setPenaltyType('points')
+    setPenaltyValue(50)
+    setOpen(false)
+    setEditOpen(false)
   }
 
   const handleEdit = (discipline: Discipline) => {

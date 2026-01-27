@@ -25,7 +25,7 @@ import {
 import { Habit } from '@/lib/types'
 
 interface HabitFormProps {
-  onSubmit: (habit: Partial<Habit>) => Promise<void> | void
+  onSubmit: (habit: Partial<Habit>) => void
   editingHabit?: Habit | null
   onClose?: () => void
 }
@@ -53,7 +53,6 @@ const colors = [
 
 export function HabitForm({ onSubmit, editingHabit, onClose }: HabitFormProps) {
   const [open, setOpen] = useState(!!editingHabit)
-  const [loading, setLoading] = useState(false)
   const [name, setName] = useState(editingHabit?.name || '')
   const [description, setDescription] = useState(editingHabit?.description || '')
   const [icon, setIcon] = useState(editingHabit?.icon || 'exercise')
@@ -63,33 +62,23 @@ export function HabitForm({ onSubmit, editingHabit, onClose }: HabitFormProps) {
   )
   const [targetCount, setTargetCount] = useState(editingHabit?.target_count || 1)
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!name.trim() || loading) return
+    if (!name.trim()) return
     
-    setLoading(true)
-    try {
-      await onSubmit({
-        id: editingHabit?.id,
-        name: name.trim(),
-        description: description.trim() || null,
-        icon,
-        color,
-        frequency,
-        target_count: targetCount,
-      })
-      
-      // Aguardar um pouco para garantir que o estado foi atualizado
-      await new Promise(resolve => setTimeout(resolve, 100))
-      
-      resetForm()
-      setOpen(false)
-      onClose?.()
-    } catch (error) {
-      console.error('Erro ao criar hábito:', error)
-    } finally {
-      setLoading(false)
-    }
+    onSubmit({
+      id: editingHabit?.id,
+      name: name.trim(),
+      description: description.trim() || null,
+      icon,
+      color,
+      frequency,
+      target_count: targetCount,
+    })
+    
+    resetForm()
+    setOpen(false)
+    onClose?.()
   }
 
   const resetForm = () => {
@@ -201,8 +190,8 @@ export function HabitForm({ onSubmit, editingHabit, onClose }: HabitFormProps) {
         </div>
       </div>
 
-      <Button type="submit" className="w-full" disabled={loading}>
-        {loading ? 'Criando...' : editingHabit ? 'Salvar Alteracoes' : 'Criar Habito'}
+      <Button type="submit" className="w-full">
+        {editingHabit ? 'Salvar Alteracoes' : 'Criar Habito'}
       </Button>
     </form>
   )
