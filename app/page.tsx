@@ -123,14 +123,18 @@ export default function HomePage() {
   }, [initUserStats])
 
   const handleCreateHabit = async (habit: Partial<Habit>) => {
+    console.log('Criando hábito:', habit)
     const supabase = createBrowserClient()
-    const { error } = await supabase.from('habits').insert({
+    const { data, error } = await supabase.from('habits').insert({
       ...habit,
       user_id: USER_ID,
-    })
+    }).select()
+    
+    console.log('Resultado insert:', { data, error })
     
     if (error) {
       toast({ title: 'Erro ao criar habito', variant: 'destructive' })
+      console.error('Erro ao criar hábito:', error)
       return
     }
     
@@ -145,11 +149,9 @@ export default function HomePage() {
     
     toast({ title: 'Habito criado!' })
     
-    // Aguardar um momento antes de atualizar
-    setTimeout(() => {
-      mutate('habits')
-      mutate('stats')
-    }, 100)
+    // Forçar atualização imediata
+    mutate('habits')
+    mutate('stats')
   }
 
   const handleUpdateHabit = async (habit: Partial<Habit>) => {
