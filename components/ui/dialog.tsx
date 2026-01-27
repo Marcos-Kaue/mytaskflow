@@ -7,29 +7,9 @@ import { XIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 function Dialog({
-  open,
-  onOpenChange,
   ...props
-}: React.ComponentProps<typeof DialogPrimitive.Root> & {
-  open?: boolean
-  onOpenChange?: (open: boolean) => void
-}) {
-  const scrollPosition = React.useRef(0)
-
-  const handleOpenChange = React.useCallback((isOpen: boolean) => {
-    if (isOpen) {
-      // Salvar posição de scroll quando abre
-      scrollPosition.current = window.scrollY || document.documentElement.scrollTop
-      document.body.style.overflow = 'hidden'
-    } else {
-      // Restaurar posição de scroll quando fecha
-      document.body.style.overflow = ''
-      window.scrollTo(0, scrollPosition.current)
-    }
-    onOpenChange?.(isOpen)
-  }, [onOpenChange])
-
-  return <DialogPrimitive.Root data-slot="dialog" open={open} onOpenChange={handleOpenChange} {...props} />
+}: React.ComponentProps<typeof DialogPrimitive.Root>) {
+  return <DialogPrimitive.Root data-slot="dialog" {...props} />
 }
 
 function DialogTrigger({
