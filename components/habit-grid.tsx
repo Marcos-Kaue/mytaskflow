@@ -471,9 +471,9 @@ export function HabitGrid({
         </div>
 
         {/* Mobile Table - Single Week */}
-        <div className="overflow-x-auto pb-4 -mx-3 px-3">
+        <div className="overflow-x-auto overflow-y-visible pb-4 -mx-3 px-3 max-w-full">
           <table 
-            className="border-collapse text-xs w-full"
+            className="border-collapse text-xs w-full min-w-max"
             role="table"
             style={{ fontSize: mobileWeekDays.length > 6 ? '9px' : '10px' }}
           >
@@ -501,8 +501,36 @@ export function HabitGrid({
               {/* Habits Rows */}
               {habits.map((habit) => (
                 <tr key={habit.id} className="group">
-                  <td className="sticky left-0 z-10 bg-card border border-border p-1 min-w-[80px]">
-                    <span className="truncate text-xs block">{habit.name}</span>
+                  <td className="sticky left-0 z-10 bg-card border border-border p-1 min-w-[80px] max-w-[100px]">
+                    <div className="flex items-center justify-between gap-1">
+                      <span className="truncate text-xs block flex-1">{habit.name}</span>
+                      <div className="flex gap-0.5 flex-shrink-0">
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault()
+                            e.stopPropagation()
+                            onUpdateHabit(habit)
+                          }}
+                          className="p-0.5 hover:bg-muted rounded transition-colors"
+                          title="Editar"
+                          aria-label={`Editar ${habit.name}`}
+                        >
+                          <Edit2 className="h-3 w-3" />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault()
+                            e.stopPropagation()
+                            onDeleteHabit(habit.id)
+                          }}
+                          className="p-0.5 hover:bg-destructive/10 hover:text-destructive rounded transition-colors"
+                          title="Excluir"
+                          aria-label={`Excluir ${habit.name}`}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </div>
+                    </div>
                   </td>
                   {mobileWeekDays.map((day) => {
                     const completed = isCompleted(habit.id, day.dateStr)
