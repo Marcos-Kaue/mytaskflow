@@ -51,7 +51,7 @@ export function DisciplinePanel({ disciplines, onCreateDiscipline, onUpdateDisci
     setLoading(true)
     try {
       if (editingDiscipline) {
-        onUpdateDiscipline(editingDiscipline.id, {
+        await onUpdateDiscipline(editingDiscipline.id, {
           name: name.trim(),
           description: description.trim() || null,
           penalty_type: penaltyType,
@@ -59,7 +59,7 @@ export function DisciplinePanel({ disciplines, onCreateDiscipline, onUpdateDisci
         })
         setEditingDiscipline(null)
       } else {
-        onCreateDiscipline({
+        await onCreateDiscipline({
           name: name.trim(),
           description: description.trim() || null,
           penalty_type: penaltyType,
@@ -67,12 +67,16 @@ export function DisciplinePanel({ disciplines, onCreateDiscipline, onUpdateDisci
         })
       }
       
+      await new Promise(resolve => setTimeout(resolve, 100))
+      
       setName('')
       setDescription('')
       setPenaltyType('points')
       setPenaltyValue(50)
       setOpen(false)
       setEditOpen(false)
+    } catch (error) {
+      console.error('Erro ao criar disciplina:', error)
     } finally {
       setLoading(false)
     }

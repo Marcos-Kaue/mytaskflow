@@ -57,7 +57,7 @@ export function RewardsPanel({ rewards, stats, onCreateReward, onUpdateReward, o
     setLoading(true)
     try {
       if (editingReward) {
-        onUpdateReward(editingReward.id, {
+        await onUpdateReward(editingReward.id, {
           name: name.trim(),
           description: description.trim() || null,
           icon,
@@ -65,7 +65,7 @@ export function RewardsPanel({ rewards, stats, onCreateReward, onUpdateReward, o
         })
         setEditingReward(null)
       } else {
-        onCreateReward({
+        await onCreateReward({
           name: name.trim(),
           description: description.trim() || null,
           icon,
@@ -73,12 +73,16 @@ export function RewardsPanel({ rewards, stats, onCreateReward, onUpdateReward, o
         })
       }
       
+      await new Promise(resolve => setTimeout(resolve, 100))
+      
       setName('')
       setDescription('')
       setIcon('movie')
       setPointsRequired(100)
       setOpen(false)
       setEditOpen(false)
+    } catch (error) {
+      console.error('Erro ao criar recompensa:', error)
     } finally {
       setLoading(false)
     }

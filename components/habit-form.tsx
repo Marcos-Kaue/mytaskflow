@@ -69,7 +69,7 @@ export function HabitForm({ onSubmit, editingHabit, onClose }: HabitFormProps) {
     
     setLoading(true)
     try {
-      onSubmit({
+      await onSubmit({
         id: editingHabit?.id,
         name: name.trim(),
         description: description.trim() || null,
@@ -79,9 +79,14 @@ export function HabitForm({ onSubmit, editingHabit, onClose }: HabitFormProps) {
         target_count: targetCount,
       })
       
+      // Aguardar um pouco para garantir que o estado foi atualizado
+      await new Promise(resolve => setTimeout(resolve, 100))
+      
       resetForm()
       setOpen(false)
       onClose?.()
+    } catch (error) {
+      console.error('Erro ao criar hábito:', error)
     } finally {
       setLoading(false)
     }
