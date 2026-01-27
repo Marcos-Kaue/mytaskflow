@@ -22,10 +22,10 @@ import { cn } from '@/lib/utils'
 interface RewardsPanelProps {
   rewards: Reward[]
   stats: UserStats | null
-  onCreateReward: (reward: Partial<Reward>) => void
-  onUpdateReward: (rewardId: string, reward: Partial<Reward>) => void
-  onDeleteReward: (rewardId: string) => void
-  onClaimReward: (rewardId: string) => void
+  onCreateReward: (reward: Partial<Reward>) => Promise<void> | void
+  onUpdateReward: (rewardId: string, reward: Partial<Reward>) => Promise<void> | void
+  onDeleteReward: (rewardId: string) => Promise<void> | void
+  onClaimReward: (rewardId: string) => Promise<void> | void
 }
 
 const rewardIcons = [

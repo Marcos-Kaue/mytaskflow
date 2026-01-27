@@ -27,10 +27,10 @@ import { cn } from '@/lib/utils'
 
 interface DisciplinePanelProps {
   disciplines: Discipline[]
-  onCreateDiscipline: (discipline: Partial<Discipline>) => void
-  onUpdateDiscipline: (disciplineId: string, discipline: Partial<Discipline>) => void
-  onDeleteDiscipline: (disciplineId: string) => void
-  onTriggerDiscipline: (disciplineId: string) => void
+  onCreateDiscipline: (discipline: Partial<Discipline>) => Promise<void> | void
+  onUpdateDiscipline: (disciplineId: string, discipline: Partial<Discipline>) => Promise<void> | void
+  onDeleteDiscipline: (disciplineId: string) => Promise<void> | void
+  onTriggerDiscipline: (disciplineId: string) => Promise<void> | void
 }
 
 export function DisciplinePanel({ disciplines, onCreateDiscipline, onUpdateDiscipline, onDeleteDiscipline, onTriggerDiscipline }: DisciplinePanelProps) {

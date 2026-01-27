@@ -25,7 +25,7 @@ import {
 import { Habit } from '@/lib/types'
 
 interface HabitFormProps {
-  onSubmit: (habit: Partial<Habit>) => void
+  onSubmit: (habit: Partial<Habit>) => Promise<void> | void
   editingHabit?: Habit | null
   onClose?: () => void
 }
