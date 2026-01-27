@@ -53,6 +53,7 @@ const colors = [
 
 export function HabitForm({ onSubmit, editingHabit, onClose }: HabitFormProps) {
   const [open, setOpen] = useState(!!editingHabit)
+  const [loading, setLoading] = useState(false)
   const [name, setName] = useState(editingHabit?.name || '')
   const [description, setDescription] = useState(editingHabit?.description || '')
   const [icon, setIcon] = useState(editingHabit?.icon || 'exercise')
@@ -62,23 +63,28 @@ export function HabitForm({ onSubmit, editingHabit, onClose }: HabitFormProps) {
   )
   const [targetCount, setTargetCount] = useState(editingHabit?.target_count || 1)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!name.trim()) return
+    if (!name.trim() || loading) return
     
-    onSubmit({
-      id: editingHabit?.id,
-      name: name.trim(),
-      description: description.trim() || null,
-      icon,
-      color,
-      frequency,
-      target_count: targetCount,
-    })
-    
-    resetForm()
-    setOpen(false)
-    onClose?.()
+    setLoading(true)
+    try {
+      onSubmit({
+        id: editingHabit?.id,
+        name: name.trim(),
+        description: description.trim() || null,
+        icon,
+        color,
+        frequency,
+        target_count: targetCount,
+      })
+      
+      resetForm()
+      setOpen(false)
+      onClose?.()
+    } finally {
+      setLoading(false)
+    }
   }
 
   const resetForm = () => {
@@ -190,8 +196,8 @@ export function HabitForm({ onSubmit, editingHabit, onClose }: HabitFormProps) {
         </div>
       </div>
 
-      <Button type="submit" className="w-full">
-        {editingHabit ? 'Salvar Alteracoes' : 'Criar Habito'}
+      <Button type="submit" className="w-full" disabled={loading}>
+        {loading ? 'Criando...' : editingHabit ? 'Salvar Alteracoes' : 'Criar Habito'}
       </Button>
     </form>
   )

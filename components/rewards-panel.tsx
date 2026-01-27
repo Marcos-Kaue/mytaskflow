@@ -40,6 +40,7 @@ const rewardIcons = [
 export function RewardsPanel({ rewards, stats, onCreateReward, onUpdateReward, onDeleteReward, onClaimReward }: RewardsPanelProps) {
   const [open, setOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
+  const [loading, setLoading] = useState(false)
   const [editingReward, setEditingReward] = useState<Reward | null>(null)
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
@@ -49,33 +50,38 @@ export function RewardsPanel({ rewards, stats, onCreateReward, onUpdateReward, o
 
   const currentPoints = stats?.total_points || 0
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!name.trim()) return
+    if (!name.trim() || loading) return
     
-    if (editingReward) {
-      onUpdateReward(editingReward.id, {
-        name: name.trim(),
-        description: description.trim() || null,
-        icon,
-        points_required: pointsRequired,
-      })
-      setEditingReward(null)
-    } else {
-      onCreateReward({
-        name: name.trim(),
-        description: description.trim() || null,
-        icon,
-        points_required: pointsRequired,
-      })
+    setLoading(true)
+    try {
+      if (editingReward) {
+        onUpdateReward(editingReward.id, {
+          name: name.trim(),
+          description: description.trim() || null,
+          icon,
+          points_required: pointsRequired,
+        })
+        setEditingReward(null)
+      } else {
+        onCreateReward({
+          name: name.trim(),
+          description: description.trim() || null,
+          icon,
+          points_required: pointsRequired,
+        })
+      }
+      
+      setName('')
+      setDescription('')
+      setIcon('movie')
+      setPointsRequired(100)
+      setOpen(false)
+      setEditOpen(false)
+    } finally {
+      setLoading(false)
     }
-    
-    setName('')
-    setDescription('')
-    setIcon('movie')
-    setPointsRequired(100)
-    setOpen(false)
-    setEditOpen(false)
   }
 
   const handleEdit = (reward: Reward) => {

@@ -36,6 +36,7 @@ interface DisciplinePanelProps {
 export function DisciplinePanel({ disciplines, onCreateDiscipline, onUpdateDiscipline, onDeleteDiscipline, onTriggerDiscipline }: DisciplinePanelProps) {
   const [open, setOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
+  const [loading, setLoading] = useState(false)
   const [editingDiscipline, setEditingDiscipline] = useState<Discipline | null>(null)
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
@@ -43,33 +44,38 @@ export function DisciplinePanel({ disciplines, onCreateDiscipline, onUpdateDisci
   const [penaltyValue, setPenaltyValue] = useState(50)
   const [isExpanded, setIsExpanded] = useState(false)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!name.trim()) return
+    if (!name.trim() || loading) return
     
-    if (editingDiscipline) {
-      onUpdateDiscipline(editingDiscipline.id, {
-        name: name.trim(),
-        description: description.trim() || null,
-        penalty_type: penaltyType,
-        penalty_value: penaltyValue,
-      })
-      setEditingDiscipline(null)
-    } else {
-      onCreateDiscipline({
-        name: name.trim(),
-        description: description.trim() || null,
-        penalty_type: penaltyType,
-        penalty_value: penaltyValue,
-      })
+    setLoading(true)
+    try {
+      if (editingDiscipline) {
+        onUpdateDiscipline(editingDiscipline.id, {
+          name: name.trim(),
+          description: description.trim() || null,
+          penalty_type: penaltyType,
+          penalty_value: penaltyValue,
+        })
+        setEditingDiscipline(null)
+      } else {
+        onCreateDiscipline({
+          name: name.trim(),
+          description: description.trim() || null,
+          penalty_type: penaltyType,
+          penalty_value: penaltyValue,
+        })
+      }
+      
+      setName('')
+      setDescription('')
+      setPenaltyType('points')
+      setPenaltyValue(50)
+      setOpen(false)
+      setEditOpen(false)
+    } finally {
+      setLoading(false)
     }
-    
-    setName('')
-    setDescription('')
-    setPenaltyType('points')
-    setPenaltyValue(50)
-    setOpen(false)
-    setEditOpen(false)
   }
 
   const handleEdit = (discipline: Discipline) => {
