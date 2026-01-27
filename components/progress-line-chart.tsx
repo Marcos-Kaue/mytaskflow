@@ -44,27 +44,27 @@ export function ProgressLineChart({ habits, completions }: ProgressLineChartProp
   
   return (
     <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base font-medium">Progresso do Mes</CardTitle>
+      <CardHeader className="pb-2 px-3 sm:px-6">
+        <CardTitle className="text-sm sm:text-base font-medium">Progresso do Mes</CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="h-[120px]">
+      <CardContent className="px-2 sm:px-6">
+        <div className="h-[100px] sm:h-[120px]">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+            <LineChart data={chartData} margin={{ top: 5, right: 5, left: -10, bottom: 5 }}>
               <XAxis 
                 dataKey="day" 
-                tick={{ fontSize: 10 }}
+                tick={{ fontSize: 9 }}
                 tickLine={false}
                 axisLine={{ stroke: 'var(--border)' }}
                 interval="preserveStartEnd"
               />
               <YAxis 
                 domain={[0, 100]}
-                tick={{ fontSize: 10 }}
+                tick={{ fontSize: 9 }}
                 tickLine={false}
                 axisLine={false}
                 tickFormatter={(value) => `${value}%`}
-                width={35}
+                width={30}
               />
               <ReferenceLine y={50} stroke="var(--border)" strokeDasharray="3 3" />
               <Line 
@@ -78,7 +78,7 @@ export function ProgressLineChart({ habits, completions }: ProgressLineChartProp
             </LineChart>
           </ResponsiveContainer>
         </div>
-        <div className="mt-2 flex justify-between text-xs text-muted-foreground">
+        <div className="mt-2 flex justify-between text-[10px] sm:text-xs text-muted-foreground px-1">
           <span>0%</span>
           <span>50%</span>
           <span>100%</span>

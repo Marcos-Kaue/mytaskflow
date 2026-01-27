@@ -109,18 +109,18 @@ export function RewardsPanel({ rewards, stats, onCreateReward, onUpdateReward, o
   const claimedRewards = rewards.filter(r => r.is_claimed)
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between cursor-pointer" onClick={() => setIsExpanded(!isExpanded)}>
+    <Card className="overflow-hidden">
+      <CardHeader className="flex flex-row items-center justify-between cursor-pointer p-3 sm:p-6" onClick={() => setIsExpanded(!isExpanded)}>
         <div className="flex items-center gap-2">
-          <ChevronDown className={cn("h-5 w-5 transition-transform", isExpanded && "rotate-180")} />
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Gift className="h-5 w-5 text-primary" />
-            Recompensas
+          <ChevronDown className={cn("h-4 w-4 sm:h-5 sm:w-5 transition-transform flex-shrink-0", isExpanded && "rotate-180")} />
+          <CardTitle className="flex items-center gap-1.5 sm:gap-2 text-sm sm:text-lg">
+            <Gift className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
+            <span className="whitespace-nowrap">Recompensas</span>
           </CardTitle>
         </div>
         {!isExpanded && (
-          <div className="flex items-center gap-1 text-sm font-medium text-primary">
-            <Sparkles className="h-4 w-4" />
+          <div className="flex items-center gap-1 text-xs sm:text-sm font-medium text-primary flex-shrink-0">
+            <Sparkles className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
             {stats?.total_points || 0} pts
           </div>
         )}
@@ -130,9 +130,9 @@ export function RewardsPanel({ rewards, stats, onCreateReward, onUpdateReward, o
             if (!isOpen) resetForm()
           }}>
             <DialogTrigger asChild>
-              <Button size="sm" variant="outline" className="gap-1 bg-transparent">
-                <Plus className="h-4 w-4" />
-                Nova
+              <Button size="sm" variant="outline" className="gap-1 bg-transparent text-xs sm:text-sm h-7 sm:h-9 px-2 sm:px-4 flex-shrink-0">
+                <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden sm:inline">Nova</span>
               </Button>
             </DialogTrigger>
           <DialogContent>
@@ -274,12 +274,12 @@ export function RewardsPanel({ rewards, stats, onCreateReward, onUpdateReward, o
         )}
       </CardHeader>
       {isExpanded && (
-        <CardContent className="space-y-4">
-        <div className="rounded-lg bg-primary/10 p-3">
+        <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-6">
+        <div className="rounded-lg bg-primary/10 p-2.5 sm:p-3">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Seus pontos</span>
-            <span className="flex items-center gap-1 text-lg font-bold text-primary">
-              <Sparkles className="h-4 w-4" />
+            <span className="text-xs sm:text-sm text-muted-foreground">Seus pontos</span>
+            <span className="flex items-center gap-1 text-base sm:text-lg font-bold text-primary">
+              <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               {currentPoints}
             </span>
           </div>
@@ -299,21 +299,21 @@ export function RewardsPanel({ rewards, stats, onCreateReward, onUpdateReward, o
                 <div 
                   key={reward.id}
                   className={cn(
-                    "rounded-lg border p-3 transition-all",
+                    "rounded-lg border p-2.5 sm:p-3 transition-all",
                     canClaim && "border-primary bg-primary/5"
                   )}
                 >
-                  <div className="flex items-start gap-3">
-                    <span className="text-2xl">{getIconEmoji(reward.icon)}</span>
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    <span className="text-xl sm:text-2xl flex-shrink-0">{getIconEmoji(reward.icon)}</span>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1">
-                          <h4 className="font-medium text-foreground">{reward.name}</h4>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium text-foreground text-sm sm:text-base truncate">{reward.name}</h4>
                           {reward.description && (
-                            <p className="text-xs text-muted-foreground">{reward.description}</p>
+                            <p className="text-[10px] sm:text-xs text-muted-foreground line-clamp-1">{reward.description}</p>
                           )}
                         </div>
-                        <div className="flex gap-1">
+                        <div className="flex gap-0.5 sm:gap-1 flex-shrink-0">
                           <button
                             onClick={() => handleEdit(reward)}
                             className="p-1 hover:bg-muted rounded transition-colors"
@@ -330,25 +330,25 @@ export function RewardsPanel({ rewards, stats, onCreateReward, onUpdateReward, o
                           </button>
                         </div>
                       </div>
-                      <div className="mt-2 space-y-1">
-                        <Progress value={progress} className="h-2" />
-                        <div className="flex items-center justify-between text-xs">
+                      <div className="mt-1.5 sm:mt-2 space-y-1">
+                        <Progress value={progress} className="h-1.5 sm:h-2" />
+                        <div className="flex items-center justify-between text-[10px] sm:text-xs">
                           <span className="text-muted-foreground">
                             {currentPoints}/{reward.points_required} pts
                           </span>
                           {canClaim ? (
                             <Button 
                               size="sm" 
-                              className="h-6 gap-1 px-2 text-xs"
+                              className="h-5 sm:h-6 gap-1 px-1.5 sm:px-2 text-[10px] sm:text-xs"
                               onClick={() => onClaimReward(reward.id)}
                             >
-                              <Check className="h-3 w-3" />
+                              <Check className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                               Resgatar
                             </Button>
                           ) : (
-                            <span className="flex items-center gap-1 text-muted-foreground">
-                              <Lock className="h-3 w-3" />
-                              Bloqueado
+                            <span className="flex items-center gap-0.5 sm:gap-1 text-muted-foreground">
+                              <Lock className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                              <span className="hidden sm:inline">Bloqueado</span>
                             </span>
                           )}
                         </div>

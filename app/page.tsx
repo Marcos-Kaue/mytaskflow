@@ -8,6 +8,7 @@ import { HabitAnalysisTable } from '@/components/habit-analysis-table'
 import { ProgressLineChart } from '@/components/progress-line-chart'
 import { RewardsPanel } from '@/components/rewards-panel'
 import { DisciplinePanel } from '@/components/discipline-panel'
+import { Logo } from '@/components/logo'
 import { createBrowserClient } from '@/lib/supabase/client'
 import { Habit, HabitCompletion, UserStats, Reward, Discipline } from '@/lib/types'
 import { Trophy, Flame, Target, Zap } from 'lucide-react'
@@ -492,13 +493,16 @@ export default function HomePage() {
   })()
 
   return (
-    <div className="w-screen overflow-x-hidden">
+    <div className="w-full overflow-x-hidden">
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header Banner */}
-      <header className="bg-foreground text-background py-6 sm:py-8 w-full">
+      <header className="bg-foreground text-background py-4 sm:py-6 md:py-8 w-full">
         <div className="mx-auto max-w-5xl text-center px-3 sm:px-4">
-          <p className="text-xs sm:text-sm opacity-80 mb-2">MyTaskFlow</p>
-          <h1 className="text-lg sm:text-xl font-medium text-balance">
+          <div className="flex items-center justify-center mb-2 sm:mb-3">
+            <Logo size={40} className="sm:w-12 sm:h-12" />
+          </div>
+          <p className="text-xs sm:text-sm md:text-base font-semibold mb-1 tracking-wide">MyTaskFlow</p>
+          <h1 className="text-sm sm:text-base md:text-lg font-normal text-balance px-2 opacity-90">
             Organize seus hábitos e conquiste seus objetivos
           </h1>
         </div>
@@ -507,33 +511,33 @@ export default function HomePage() {
       {/* Stats Bar */}
       <div className="border-b border-border bg-card w-full">
         <div className="mx-auto max-w-5xl px-3 py-2 sm:px-4 sm:py-3 w-full">
-          <div className="grid grid-cols-2 gap-3 sm:flex sm:gap-6 text-xs sm:text-sm">
+          <div className="grid grid-cols-2 gap-2 sm:gap-3 md:flex md:gap-6 text-xs sm:text-sm">
             <div className="flex items-center gap-1 sm:gap-2">
               <Zap className="h-3 w-3 sm:h-4 sm:w-4 text-accent flex-shrink-0" />
               <span className="font-medium">{stats?.total_points || 0}</span>
-              <span className="text-muted-foreground hidden sm:inline">pontos</span>
+              <span className="text-muted-foreground hidden md:inline">pontos</span>
             </div>
             <div className="flex items-center gap-1 sm:gap-2">
               <Flame className="h-3 w-3 sm:h-4 sm:w-4 text-accent flex-shrink-0" />
               <span className="font-medium">{stats?.current_streak || 0}</span>
-              <span className="text-muted-foreground hidden sm:inline">sequencia</span>
+              <span className="text-muted-foreground hidden md:inline">sequencia</span>
             </div>
             <div className="flex items-center gap-1 sm:gap-2">
               <Trophy className="h-3 w-3 sm:h-4 sm:w-4 text-accent flex-shrink-0" />
               <span className="font-medium">{stats?.longest_streak || 0}</span>
-              <span className="text-muted-foreground hidden sm:inline">recorde</span>
+              <span className="text-muted-foreground hidden md:inline">recorde</span>
             </div>
             <div className="flex items-center gap-1 sm:gap-2">
               <Target className="h-3 w-3 sm:h-4 sm:w-4 text-accent flex-shrink-0" />
               <span className="font-medium">{monthlyProgress}%</span>
-              <span className="text-muted-foreground hidden sm:inline">mes</span>
+              <span className="text-muted-foreground hidden md:inline">mes</span>
             </div>
           </div>
         </div>
       </div>
       
-      <main className="mx-auto w-full max-w-5xl px-3 py-4 sm:px-4 sm:py-6 flex-1">
-        <div className="space-y-4 sm:space-y-6">
+      <main className="mx-auto w-full max-w-5xl px-3 py-3 sm:px-4 sm:py-4 md:py-6 flex-1">
+        <div className="space-y-3 sm:space-y-4 md:space-y-6">
           {/* Habit Grid + Side Analysis */}
           <div className="grid gap-3 sm:gap-4 lg:gap-6 lg:grid-cols-[2fr,1.1fr] items-start">
             <HabitGrid
@@ -560,7 +564,7 @@ export default function HomePage() {
           <ProgressLineChart habits={habits} completions={completions} />
           
           {/* Rewards and Discipline */}
-          <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
+          <div className="grid gap-3 sm:gap-4 md:gap-6 md:grid-cols-2">
             <RewardsPanel
               rewards={rewards}
               stats={stats || null}

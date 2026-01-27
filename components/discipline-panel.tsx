@@ -122,18 +122,18 @@ export function DisciplinePanel({ disciplines, onCreateDiscipline, onUpdateDisci
   const triggeredDisciplines = disciplines.filter(d => d.triggered_at && d.triggered_at !== d.created_at)
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between cursor-pointer" onClick={() => setIsExpanded(!isExpanded)}>
+    <Card className="overflow-hidden">
+      <CardHeader className="flex flex-row items-center justify-between cursor-pointer p-3 sm:p-6" onClick={() => setIsExpanded(!isExpanded)}>
         <div className="flex items-center gap-2">
-          <ChevronDown className={cn("h-5 w-5 transition-transform", isExpanded && "rotate-180")} />
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <AlertTriangle className="h-5 w-5 text-destructive" />
-            Disciplinas
+          <ChevronDown className={cn("h-4 w-4 sm:h-5 sm:w-5 transition-transform flex-shrink-0", isExpanded && "rotate-180")} />
+          <CardTitle className="flex items-center gap-1.5 sm:gap-2 text-sm sm:text-lg">
+            <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-destructive flex-shrink-0" />
+            <span className="whitespace-nowrap">Disciplinas</span>
           </CardTitle>
         </div>
         {!isExpanded && (
-          <div className="flex items-center gap-1 text-sm font-medium text-destructive">
-            <Zap className="h-4 w-4" />
+          <div className="flex items-center gap-1 text-xs sm:text-sm font-medium text-destructive flex-shrink-0">
+            <Zap className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
             {disciplines.filter(d => !d.triggered_at || d.triggered_at === d.created_at).length} ativas
           </div>
         )}
@@ -143,9 +143,9 @@ export function DisciplinePanel({ disciplines, onCreateDiscipline, onUpdateDisci
             if (!isOpen) resetForm()
           }}>
             <DialogTrigger asChild>
-              <Button size="sm" variant="outline" className="gap-1 bg-transparent">
-                <Plus className="h-4 w-4" />
-                Nova
+              <Button size="sm" variant="outline" className="gap-1 bg-transparent text-xs sm:text-sm h-7 sm:h-9 px-2 sm:px-4 flex-shrink-0">
+                <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden sm:inline">Nova</span>
               </Button>
             </DialogTrigger>
           <DialogContent>
@@ -281,35 +281,35 @@ export function DisciplinePanel({ disciplines, onCreateDiscipline, onUpdateDisci
         )}
       </CardHeader>
       {isExpanded && (
-        <CardContent className="space-y-4">
-        <div className="rounded-lg bg-destructive/10 p-3">
-          <p className="text-xs text-muted-foreground">
+        <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-6">
+        <div className="rounded-lg bg-destructive/10 p-2.5 sm:p-3">
+          <p className="text-xs sm:text-sm text-muted-foreground">
             Disciplinas sao penalidades que voce aplica quando nao cumpre suas metas. 
             Use com responsabilidade para manter sua motivacao!
           </p>
         </div>
 
         {activeDisciplines.length === 0 && triggeredDisciplines.length === 0 ? (
-          <p className="py-4 text-center text-sm text-muted-foreground">
+          <p className="py-4 text-center text-xs sm:text-sm text-muted-foreground">
             Crie disciplinas para manter seu foco!
           </p>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2 sm:space-y-3">
             {activeDisciplines.map((discipline) => (
               <div 
                 key={discipline.id}
-                className="rounded-lg border border-destructive/30 bg-destructive/5 p-3"
+                className="rounded-lg border border-destructive/30 bg-destructive/5 p-2.5 sm:p-3"
               >
-                <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start justify-between gap-2 sm:gap-3">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1">
-                        <h4 className="font-medium text-foreground">{discipline.name}</h4>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium text-foreground text-sm sm:text-base truncate">{discipline.name}</h4>
                         {discipline.description && (
-                          <p className="text-xs text-muted-foreground">{discipline.description}</p>
+                          <p className="text-[10px] sm:text-xs text-muted-foreground line-clamp-1">{discipline.description}</p>
                         )}
                       </div>
-                      <div className="flex gap-1">
+                      <div className="flex gap-0.5 sm:gap-1 flex-shrink-0">
                         <button
                           onClick={() => handleEdit(discipline)}
                           className="p-1 hover:bg-muted rounded transition-colors"
@@ -326,9 +326,9 @@ export function DisciplinePanel({ disciplines, onCreateDiscipline, onUpdateDisci
                         </button>
                       </div>
                     </div>
-                    <div className="mt-2 flex items-center gap-2">
-                      <span className="flex items-center gap-1 rounded bg-destructive/20 px-2 py-0.5 text-xs text-destructive">
-                        <Zap className="h-3 w-3" />
+                    <div className="mt-1.5 sm:mt-2 flex items-center gap-2">
+                      <span className="flex items-center gap-1 rounded bg-destructive/20 px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs text-destructive">
+                        <Zap className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                         {getPenaltyLabel(discipline.penalty_type, discipline.penalty_value)}
                       </span>
                     </div>
@@ -336,7 +336,7 @@ export function DisciplinePanel({ disciplines, onCreateDiscipline, onUpdateDisci
                   <Button
                     size="sm"
                     variant="destructive"
-                    className="shrink-0"
+                    className="shrink-0 text-xs sm:text-sm h-7 sm:h-9 px-2 sm:px-4"
                     onClick={() => onTriggerDiscipline(discipline.id)}
                   >
                     Aplicar
@@ -346,19 +346,19 @@ export function DisciplinePanel({ disciplines, onCreateDiscipline, onUpdateDisci
             ))}
 
             {triggeredDisciplines.length > 0 && (
-              <div className="border-t pt-3">
-                <p className="mb-2 text-xs font-medium text-muted-foreground">Historico</p>
-                <div className="space-y-2">
+              <div className="border-t pt-2 sm:pt-3">
+                <p className="mb-1.5 sm:mb-2 text-xs font-medium text-muted-foreground">Historico</p>
+                <div className="space-y-1.5 sm:space-y-2">
                   {triggeredDisciplines.slice(0, 3).map((discipline) => (
                     <div 
                       key={discipline.id}
-                      className="flex items-center gap-2 rounded-lg bg-secondary/50 p-2 opacity-60"
+                      className="flex items-center gap-1.5 sm:gap-2 rounded-lg bg-secondary/50 p-1.5 sm:p-2 opacity-60"
                     >
-                      <AlertTriangle className="h-4 w-4 text-destructive" />
-                      <span className="flex-1 text-sm">{discipline.name}</span>
-                      <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <Clock className="h-3 w-3" />
-                        {formatDate(discipline.triggered_at)}
+                      <AlertTriangle className="h-3 w-3 sm:h-4 sm:w-4 text-destructive flex-shrink-0" />
+                      <span className="flex-1 text-xs sm:text-sm truncate">{discipline.name}</span>
+                      <span className="flex items-center gap-0.5 sm:gap-1 text-[10px] sm:text-xs text-muted-foreground flex-shrink-0">
+                        <Clock className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                        <span className="hidden sm:inline">{formatDate(discipline.triggered_at)}</span>
                       </span>
                     </div>
                   ))}

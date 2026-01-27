@@ -451,19 +451,19 @@ export function HabitGrid({
           <button
             onClick={() => setMobileWeekIndex(Math.max(0, mobileWeekIndex - 1))}
             disabled={mobileWeekIndex === 0}
-            className="p-1 hover:bg-muted rounded transition-colors disabled:opacity-50"
+            className="p-1 hover:bg-muted rounded transition-colors disabled:opacity-50 flex-shrink-0"
             title="Semana anterior"
             aria-label="Semana anterior"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
-          <span className="text-xs font-medium">
+          <span className="text-xs font-medium text-center flex-1">
             Semana {mobileWeekIndex + 1}
           </span>
           <button
             onClick={() => setMobileWeekIndex(mobileWeekIndex + 1)}
             disabled={mobileWeekIndex >= Object.keys(weekGroups).length - 1}
-            className="p-1 hover:bg-muted rounded transition-colors disabled:opacity-50"
+            className="p-1 hover:bg-muted rounded transition-colors disabled:opacity-50 flex-shrink-0"
             title="Próxima semana"
             aria-label="Próxima semana"
           >
@@ -472,25 +472,29 @@ export function HabitGrid({
         </div>
 
         {/* Mobile Table - Single Week */}
-        <div className="overflow-x-auto pb-4">
+        <div className="overflow-x-auto pb-4 -mx-3 px-3">
           <table 
             className="border-collapse text-xs w-full"
             role="table"
+            style={{ fontSize: mobileWeekDays.length > 6 ? '9px' : '10px' }}
           >
             <thead>
               <tr>
-                <th className="sticky left-0 z-10 bg-card border border-border p-1 min-w-[80px]"></th>
-                {mobileWeekDays.map((day) => (
-                  <th 
-                    key={day.dateStr}
-                    className={`border border-border p-1 text-center min-w-[45px] text-[10px] ${
-                      day.dateStr === todayStr ? 'bg-primary text-primary-foreground' : 'bg-secondary'
-                    }`}
-                  >
-                    <div>{WEEKDAYS[day.weekday]}</div>
-                    <div className="font-bold">{day.date}</div>
-                  </th>
-                ))}
+                <th className="sticky left-0 z-10 bg-card border border-border p-0.5 sm:p-1 min-w-[60px] sm:min-w-[80px]"></th>
+                {mobileWeekDays.map((day) => {
+                  const cellWidth = mobileWeekDays.length > 6 ? 'min-w-[36px]' : 'min-w-[45px]'
+                  return (
+                    <th 
+                      key={day.dateStr}
+                      className={`border border-border p-0.5 sm:p-1 text-center ${cellWidth} ${
+                        day.dateStr === todayStr ? 'bg-primary text-primary-foreground' : 'bg-secondary'
+                      }`}
+                    >
+                      <div className="text-xs">{WEEKDAYS[day.weekday]}</div>
+                      <div className="font-bold text-xs">{day.date}</div>
+                    </th>
+                  )
+                })}
               </tr>
             </thead>
             

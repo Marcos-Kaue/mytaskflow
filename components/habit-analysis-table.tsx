@@ -91,13 +91,12 @@ export function HabitAnalysisTable({ habits, completions }: HabitAnalysisTablePr
           </div>
         </div>
 
-        {/* Mobile Carousel Layout */}
-        <div className="sm:hidden">
-          <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 snap-x snap-mandatory scroll-smooth">
-            {rows.map((row) => (
-              <div
-                key={row.id}
-                className="flex-shrink-0 w-72 border rounded-lg p-4 space-y-3 bg-card snap-center"
+        {/* Mobile Layout */}
+        <div className="sm:hidden space-y-2">
+          {rows.map((row) => (
+            <div
+              key={row.id}
+              className="border rounded-lg p-3 space-y-2 bg-card"
               >
                 <div className="space-y-1">
                   <h3 className="font-medium text-sm">{row.name}</h3>
@@ -115,8 +114,6 @@ export function HabitAnalysisTable({ habits, completions }: HabitAnalysisTablePr
                 </div>
               </div>
             ))}
-          </div>
-          <p className="text-xs text-muted-foreground text-center mt-2">↔️ Deslize para ver mais</p>
         </div>
       </CardContent>
     </Card>
