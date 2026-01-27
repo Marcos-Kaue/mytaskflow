@@ -512,7 +512,7 @@ export default function HomePage() {
       {/* Stats Bar */}
       <div className="border-b border-border bg-card w-full">
         <div className="mx-auto max-w-5xl px-3 py-2 sm:px-4 sm:py-3 w-full">
-          <div className="grid grid-cols-2 gap-2 sm:gap-3 md:flex md:gap-6 text-xs sm:text-sm">
+          <div className="grid grid-cols-3 gap-2 sm:gap-3 md:flex md:gap-6 text-xs sm:text-sm">
             <div className="flex items-center gap-1 sm:gap-2">
               <Zap className="h-3 w-3 sm:h-4 sm:w-4 text-accent flex-shrink-0" />
               <span className="font-medium">{stats?.total_points || 0}</span>
@@ -522,11 +522,6 @@ export default function HomePage() {
               <Flame className="h-3 w-3 sm:h-4 sm:w-4 text-accent flex-shrink-0" />
               <span className="font-medium">{stats?.current_streak || 0}</span>
               <span className="text-muted-foreground hidden md:inline">sequencia</span>
-            </div>
-            <div className="flex items-center gap-1 sm:gap-2">
-              <Trophy className="h-3 w-3 sm:h-4 sm:w-4 text-accent flex-shrink-0" />
-              <span className="font-medium">{stats?.longest_streak || 0}</span>
-              <span className="text-muted-foreground hidden md:inline">recorde</span>
             </div>
             <div className="flex items-center gap-1 sm:gap-2">
               <Target className="h-3 w-3 sm:h-4 sm:w-4 text-accent flex-shrink-0" />
