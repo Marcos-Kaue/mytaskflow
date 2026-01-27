@@ -144,8 +144,12 @@ export default function HomePage() {
     }
     
     toast({ title: 'Habito criado!' })
-    mutate('habits')
-    mutate('stats')
+    
+    // Aguardar um momento antes de atualizar
+    setTimeout(() => {
+      mutate('habits')
+      mutate('stats')
+    }, 100)
   }
 
   const handleUpdateHabit = async (habit: Partial<Habit>) => {
@@ -315,7 +319,7 @@ export default function HomePage() {
     }
     
     toast({ title: 'Recompensa criada!' })
-    mutate('rewards')
+    setTimeout(() => mutate('rewards'), 100)
   }
 
   const handleUpdateReward = async (rewardId: string, reward: Partial<Reward>) => {
@@ -405,7 +409,7 @@ export default function HomePage() {
     }
     
     toast({ title: 'Disciplina criada!' })
-    mutate('disciplines')
+    setTimeout(() => mutate('disciplines'), 100)
   }
 
   const handleUpdateDiscipline = async (disciplineId: string, discipline: Partial<Discipline>) => {
