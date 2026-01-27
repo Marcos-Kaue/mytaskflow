@@ -1,0 +1,8 @@
+/.git
+/.gitignore
+.env.example
+.env.local
+README.md
+CORRECAO-FUNCIONALIDADES.md
+scripts/
+reset-data.mjs

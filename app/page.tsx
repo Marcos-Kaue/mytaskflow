@@ -207,7 +207,6 @@ export default function HomePage() {
         
         if (existingCompletions.length > 0) {
           // Já está marcado, apenas atualizar a UI
-          console.log('Já existe completion, atualizando UI')
           mutate('completions')
           return
         }
@@ -228,7 +227,6 @@ export default function HomePage() {
         if (error) {
           // Se for erro de duplicata, ignorar silenciosamente e atualizar
           if (error.code === '23505' || error.message.includes('duplicate')) {
-            console.log('Duplicata detectada, atualizando UI')
             mutate('completions')
             return
           }

@@ -152,10 +152,7 @@ export function PerformanceChart({ habits, completions }: PerformanceChartProps)
                       borderColor: 'var(--color-border)',
                       borderRadius: '8px',
                     }}
-                    formatter={(value: number, name: string, props: { payload: { fullName: string } }) => [
-                      `${value}%`, 
-                      props.payload.fullName
-                    ]}
+                    formatter={(value) => `${value}%`}
                   />
                   <Bar 
                     dataKey="percentage" 

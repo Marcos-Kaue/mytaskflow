@@ -337,7 +337,6 @@ export function HabitGrid({
                           e.stopPropagation()
                           
                           if (isProcessing) {
-                            console.log('Já processando, ignorando clique')
                             return
                           }
                           
