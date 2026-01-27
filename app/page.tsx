@@ -283,6 +283,7 @@ export default function HomePage() {
           const { error: statsError } = await supabase.from('user_stats').update({
             total_points: Math.max((stats?.total_points || 0) - pointsToRemove, 0),
             total_completions: Math.max((stats?.total_completions || 0) - completionsToRemove, 0),
+            current_streak: Math.max((stats?.current_streak || 0) - 1, 0),
             updated_at: new Date().toISOString(),
           }).eq('user_id', USER_ID)
           
