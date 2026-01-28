@@ -61,7 +61,6 @@ export function HabitForm({ onSubmit, editingHabit, onClose }: HabitFormProps) {
     editingHabit?.frequency || 'daily'
   )
   const [targetCount, setTargetCount] = useState(editingHabit?.target_count || 1)
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -89,15 +88,9 @@ export function HabitForm({ onSubmit, editingHabit, onClose }: HabitFormProps) {
     setColor('emerald')
     setFrequency('daily')
     setTargetCount(1)
-    setHasUnsavedChanges(false)
   }
 
   const handleOpenChange = (newOpen: boolean) => {
-    if (!newOpen && hasUnsavedChanges) {
-      if (!confirm('Tem alterações não salvas. Deseja sair?')) {
-        return
-      }
-    }
     setOpen(newOpen)
     if (!newOpen) {
       resetForm()
@@ -112,10 +105,7 @@ export function HabitForm({ onSubmit, editingHabit, onClose }: HabitFormProps) {
         <Input
           id="name"
           value={name}
-          onChange={(e) => {
-            setName(e.target.value)
-            setHasUnsavedChanges(true)
-          }}
+          onChange={(e) => setName(e.target.value)}
           placeholder="Ex: Beber 2L de agua"
           className="text-xs sm:text-sm h-8 sm:h-9"
           required
@@ -127,10 +117,7 @@ export function HabitForm({ onSubmit, editingHabit, onClose }: HabitFormProps) {
         <Textarea
           id="description"
           value={description}
-          onChange={(e) => {
-            setDescription(e.target.value)
-            setHasUnsavedChanges(true)
-          }}
+          onChange={(e) => setDescription(e.target.value)}
           placeholder="Adicione detalhes sobre este habito"
           rows={2}
           className="text-xs sm:text-sm"
@@ -140,10 +127,7 @@ export function HabitForm({ onSubmit, editingHabit, onClose }: HabitFormProps) {
       <div className="grid grid-cols-2 gap-2 sm:gap-4">
         <div className="space-y-1.5 sm:space-y-2">
           <Label className="text-xs sm:text-sm">Icone</Label>
-          <Select value={icon} onValueChange={(v) => {
-            setIcon(v)
-            setHasUnsavedChanges(true)
-          }}>
+          <Select value={icon} onValueChange={setIcon}>
             <SelectTrigger className="text-xs sm:text-sm h-8 sm:h-9">
               <SelectValue />
             </SelectTrigger>
@@ -162,10 +146,7 @@ export function HabitForm({ onSubmit, editingHabit, onClose }: HabitFormProps) {
 
         <div className="space-y-1.5 sm:space-y-2">
           <Label className="text-xs sm:text-sm">Cor</Label>
-          <Select value={color} onValueChange={(c) => {
-            setColor(c)
-            setHasUnsavedChanges(true)
-          }}>
+          <Select value={color} onValueChange={setColor}>
             <SelectTrigger className="text-xs sm:text-sm h-8 sm:h-9">
               <SelectValue />
             </SelectTrigger>
@@ -186,10 +167,7 @@ export function HabitForm({ onSubmit, editingHabit, onClose }: HabitFormProps) {
       <div className="grid grid-cols-2 gap-2 sm:gap-4">
         <div className="space-y-1.5 sm:space-y-2">
           <Label className="text-xs sm:text-sm">Frequencia</Label>
-          <Select value={frequency} onValueChange={(v) => {
-            setFrequency(v as typeof frequency)
-            setHasUnsavedChanges(true)
-          }}>
+          <Select value={frequency} onValueChange={(v) => setFrequency(v as typeof frequency)}>
             <SelectTrigger className="text-xs sm:text-sm h-8 sm:h-9">
               <SelectValue />
             </SelectTrigger>
@@ -209,10 +187,7 @@ export function HabitForm({ onSubmit, editingHabit, onClose }: HabitFormProps) {
             min={1}
             max={99}
             value={targetCount}
-            onChange={(e) => {
-              setTargetCount(Number(e.target.value))
-              setHasUnsavedChanges(true)
-            }}
+            onChange={(e) => setTargetCount(Number(e.target.value))}
             className="text-xs sm:text-sm h-8 sm:h-9"
           />
         </div>
