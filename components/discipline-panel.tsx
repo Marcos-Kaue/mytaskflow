@@ -16,6 +16,15 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -33,6 +42,19 @@ interface DisciplinePanelProps {
   onTriggerDiscipline: (disciplineId: string) => void
 }
 
+const getPenaltyLabel = (type: string, value: number): string => {
+  switch (type) {
+    case 'points':
+      return `Remover ${value} pontos`
+    case 'streak_reset':
+      return `Resetar sequências`
+    case 'custom':
+      return `${value} dias sem recompensa`
+    default:
+      return `Penalidade: ${value}`
+  }
+}
+
 export function DisciplinePanel({ disciplines, onCreateDiscipline, onUpdateDiscipline, onDeleteDiscipline, onTriggerDiscipline }: DisciplinePanelProps) {
   const [open, setOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
@@ -42,6 +64,7 @@ export function DisciplinePanel({ disciplines, onCreateDiscipline, onUpdateDisci
   const [penaltyType, setPenaltyType] = useState<'points' | 'streak_reset' | 'custom'>('points')
   const [penaltyValue, setPenaltyValue] = useState(50)
   const [isExpanded, setIsExpanded] = useState(false)
+  const [triggerConfirmId, setTriggerConfirmId] = useState<string | null>(null)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -281,6 +304,7 @@ export function DisciplinePanel({ disciplines, onCreateDiscipline, onUpdateDisci
         )}
       </CardHeader>
       {isExpanded && (
+        <>
         <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-6">
         <div className="rounded-lg bg-destructive/10 p-2.5 sm:p-3">
           <p className="text-xs sm:text-sm text-muted-foreground">
@@ -337,7 +361,7 @@ export function DisciplinePanel({ disciplines, onCreateDiscipline, onUpdateDisci
                     size="sm"
                     variant="destructive"
                     className="shrink-0 text-xs sm:text-sm h-7 sm:h-9 px-2 sm:px-4"
-                    onClick={() => onTriggerDiscipline(discipline.id)}
+                    onClick={() => setTriggerConfirmId(discipline.id)}
                   >
                     Aplicar
                   </Button>
@@ -368,6 +392,47 @@ export function DisciplinePanel({ disciplines, onCreateDiscipline, onUpdateDisci
           </div>
         )}
       </CardContent>
+
+      {/* Confirmation Dialog */}
+      <AlertDialog open={!!triggerConfirmId} onOpenChange={(isOpen) => {
+        if (!isOpen) setTriggerConfirmId(null)
+      }}>
+        <AlertDialogContent className="max-w-[90vw] sm:max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-base sm:text-lg">Aplicar Disciplina?</AlertDialogTitle>
+            <AlertDialogDescription className="text-xs sm:text-sm pt-2">
+              {triggerConfirmId && activeDisciplines.find(d => d.id === triggerConfirmId) && (
+                <>
+                  Tem certeza que deseja aplicar a penalidade <strong>{activeDisciplines.find(d => d.id === triggerConfirmId)?.name}</strong>?
+                  <div className="mt-3 p-2 bg-destructive/10 rounded border border-destructive/30">
+                    <p className="text-destructive text-xs font-medium">
+                      ⚠️ {getPenaltyLabel(
+                        activeDisciplines.find(d => d.id === triggerConfirmId)?.penalty_type || 'points',
+                        activeDisciplines.find(d => d.id === triggerConfirmId)?.penalty_value || 0
+                      )}
+                    </p>
+                  </div>
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex gap-3">
+            <AlertDialogCancel className="flex-1">Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (triggerConfirmId) {
+                  onTriggerDiscipline(triggerConfirmId)
+                  setTriggerConfirmId(null)
+                }
+              }}
+              className="flex-1 bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Aplicar Penalidade
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
+        </>
       )}
     </Card>
   )
