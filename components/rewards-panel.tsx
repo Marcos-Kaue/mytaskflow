@@ -46,6 +46,31 @@ export function RewardsPanel({ rewards, stats, onCreateReward, onUpdateReward, o
   const [icon, setIcon] = useState('movie')
   const [pointsRequired, setPointsRequired] = useState(100)
   const [isExpanded, setIsExpanded] = useState(false)
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+
+  const handleDialogChange = (isOpen: boolean) => {
+    if (!isOpen && hasUnsavedChanges) {
+      if (!confirm('Tem alterações não salvas. Deseja sair?')) {
+        return
+      }
+    }
+    if (!isOpen) {
+      resetForm()
+    }
+    setOpen(isOpen)
+  }
+
+  const handleEditDialogChange = (isOpen: boolean) => {
+    if (!isOpen && hasUnsavedChanges) {
+      if (!confirm('Tem alterações não salvas. Deseja sair?')) {
+        return
+      }
+    }
+    if (!isOpen) {
+      resetForm()
+    }
+    setEditOpen(isOpen)
+  }
 
   const currentPoints = stats?.total_points || 0
 
@@ -74,6 +99,7 @@ export function RewardsPanel({ rewards, stats, onCreateReward, onUpdateReward, o
     setDescription('')
     setIcon('movie')
     setPointsRequired(100)
+    setHasUnsavedChanges(false)
     setOpen(false)
     setEditOpen(false)
   }
@@ -99,6 +125,7 @@ export function RewardsPanel({ rewards, stats, onCreateReward, onUpdateReward, o
     setIcon('movie')
     setPointsRequired(100)
     setEditingReward(null)
+    setHasUnsavedChanges(false)
   }
 
   const getIconEmoji = (iconValue: string) => {
@@ -125,10 +152,7 @@ export function RewardsPanel({ rewards, stats, onCreateReward, onUpdateReward, o
           </div>
         )}
         {isExpanded && (
-          <Dialog open={open} onOpenChange={(isOpen) => {
-            setOpen(isOpen)
-            if (!isOpen) resetForm()
-          }}>
+          <Dialog open={open} onOpenChange={handleDialogChange}>
             <DialogTrigger asChild>
               <Button size="sm" variant="outline" className="gap-1 bg-transparent text-xs sm:text-sm h-7 sm:h-9 px-2 sm:px-4 flex-shrink-0">
                 <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -145,7 +169,10 @@ export function RewardsPanel({ rewards, stats, onCreateReward, onUpdateReward, o
                 <Input
                   id="reward-name"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(e) => {
+                    setName(e.target.value)
+                    setHasUnsavedChanges(true)
+                  }}
                   placeholder="Ex: Assistir um filme"
                   required
                 />
@@ -156,7 +183,10 @@ export function RewardsPanel({ rewards, stats, onCreateReward, onUpdateReward, o
                 <Input
                   id="reward-desc"
                   value={description}
-                  onChange={(e) => setDescription(e.target.value)}
+                  onChange={(e) => {
+                    setDescription(e.target.value)
+                    setHasUnsavedChanges(true)
+                  }}
                   placeholder="Detalhes da recompensa"
                 />
               </div>
@@ -168,7 +198,10 @@ export function RewardsPanel({ rewards, stats, onCreateReward, onUpdateReward, o
                     <button
                       key={i.value}
                       type="button"
-                      onClick={() => setIcon(i.value)}
+                      onClick={() => {
+                        setIcon(i.value)
+                        setHasUnsavedChanges(true)
+                      }}
                       className={cn(
                         "flex h-10 w-10 items-center justify-center rounded-lg text-xl transition-all",
                         icon === i.value 
@@ -190,7 +223,10 @@ export function RewardsPanel({ rewards, stats, onCreateReward, onUpdateReward, o
                   min={10}
                   step={10}
                   value={pointsRequired}
-                  onChange={(e) => setPointsRequired(Number(e.target.value))}
+                  onChange={(e) => {
+                    setPointsRequired(Number(e.target.value))
+                    setHasUnsavedChanges(true)
+                  }}
                 />
               </div>
 
@@ -202,10 +238,7 @@ export function RewardsPanel({ rewards, stats, onCreateReward, onUpdateReward, o
         </Dialog>            )}
         {/* Edit Dialog */}
         {isExpanded && (
-          <Dialog open={editOpen} onOpenChange={(isOpen) => {
-            setEditOpen(isOpen)
-            if (!isOpen) resetForm()
-          }}>
+          <Dialog open={editOpen} onOpenChange={handleEditDialogChange}>
             <DialogContent>
             <DialogHeader>
               <DialogTitle>Editar Recompensa</DialogTitle>
@@ -216,7 +249,10 @@ export function RewardsPanel({ rewards, stats, onCreateReward, onUpdateReward, o
                 <Input
                   id="edit-reward-name"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(e) => {
+                    setName(e.target.value)
+                    setHasUnsavedChanges(true)
+                  }}
                   placeholder="Ex: Assistir um filme"
                   required
                 />
@@ -227,7 +263,10 @@ export function RewardsPanel({ rewards, stats, onCreateReward, onUpdateReward, o
                 <Input
                   id="edit-reward-desc"
                   value={description}
-                  onChange={(e) => setDescription(e.target.value)}
+                  onChange={(e) => {
+                    setDescription(e.target.value)
+                    setHasUnsavedChanges(true)
+                  }}
                   placeholder="Detalhes da recompensa"
                 />
               </div>
@@ -239,7 +278,10 @@ export function RewardsPanel({ rewards, stats, onCreateReward, onUpdateReward, o
                     <button
                       key={i.value}
                       type="button"
-                      onClick={() => setIcon(i.value)}
+                      onClick={() => {
+                        setIcon(i.value)
+                        setHasUnsavedChanges(true)
+                      }}
                       className={cn(
                         "flex h-10 w-10 items-center justify-center rounded-lg text-xl transition-all",
                         icon === i.value 
@@ -261,7 +303,10 @@ export function RewardsPanel({ rewards, stats, onCreateReward, onUpdateReward, o
                   min={10}
                   step={10}
                   value={pointsRequired}
-                  onChange={(e) => setPointsRequired(Number(e.target.value))}
+                  onChange={(e) => {
+                    setPointsRequired(Number(e.target.value))
+                    setHasUnsavedChanges(true)
+                  }}
                 />
               </div>
 

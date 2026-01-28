@@ -42,6 +42,31 @@ export function DisciplinePanel({ disciplines, onCreateDiscipline, onUpdateDisci
   const [penaltyType, setPenaltyType] = useState<'points' | 'streak_reset' | 'custom'>('points')
   const [penaltyValue, setPenaltyValue] = useState(50)
   const [isExpanded, setIsExpanded] = useState(false)
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+
+  const handleDialogChange = (isOpen: boolean) => {
+    if (!isOpen && hasUnsavedChanges) {
+      if (!confirm('Tem alterações não salvas. Deseja sair?')) {
+        return
+      }
+    }
+    if (!isOpen) {
+      resetForm()
+    }
+    setOpen(isOpen)
+  }
+
+  const handleEditDialogChange = (isOpen: boolean) => {
+    if (!isOpen && hasUnsavedChanges) {
+      if (!confirm('Tem alterações não salvas. Deseja sair?')) {
+        return
+      }
+    }
+    if (!isOpen) {
+      resetForm()
+    }
+    setEditOpen(isOpen)
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -68,6 +93,7 @@ export function DisciplinePanel({ disciplines, onCreateDiscipline, onUpdateDisci
     setDescription('')
     setPenaltyType('points')
     setPenaltyValue(50)
+    setHasUnsavedChanges(false)
     setOpen(false)
     setEditOpen(false)
   }
@@ -93,6 +119,7 @@ export function DisciplinePanel({ disciplines, onCreateDiscipline, onUpdateDisci
     setPenaltyType('points')
     setPenaltyValue(50)
     setEditingDiscipline(null)
+    setHasUnsavedChanges(false)
   }
 
   const getPenaltyLabel = (type: string, value: number) => {
@@ -138,10 +165,7 @@ export function DisciplinePanel({ disciplines, onCreateDiscipline, onUpdateDisci
           </div>
         )}
         {isExpanded && (
-          <Dialog open={open} onOpenChange={(isOpen) => {
-            setOpen(isOpen)
-            if (!isOpen) resetForm()
-          }}>
+          <Dialog open={open} onOpenChange={handleDialogChange}>
             <DialogTrigger asChild>
               <Button size="sm" variant="outline" className="gap-1 bg-transparent text-xs sm:text-sm h-7 sm:h-9 px-2 sm:px-4 flex-shrink-0">
                 <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -158,7 +182,10 @@ export function DisciplinePanel({ disciplines, onCreateDiscipline, onUpdateDisci
                 <Input
                   id="disc-name"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(e) => {
+                    setName(e.target.value)
+                    setHasUnsavedChanges(true)
+                  }}
                   placeholder="Ex: Nao cumpri meta de agua"
                   required
                 />
@@ -169,7 +196,10 @@ export function DisciplinePanel({ disciplines, onCreateDiscipline, onUpdateDisci
                 <Input
                   id="disc-desc"
                   value={description}
-                  onChange={(e) => setDescription(e.target.value)}
+                  onChange={(e) => {
+                    setDescription(e.target.value)
+                    setHasUnsavedChanges(true)
+                  }}
                   placeholder="Quando aplicar esta penalidade"
                 />
               </div>
@@ -177,7 +207,10 @@ export function DisciplinePanel({ disciplines, onCreateDiscipline, onUpdateDisci
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Tipo de Penalidade</Label>
-                  <Select value={penaltyType} onValueChange={(v) => setPenaltyType(v as typeof penaltyType)}>
+                  <Select value={penaltyType} onValueChange={(v) => {
+                    setPenaltyType(v as typeof penaltyType)
+                    setHasUnsavedChanges(true)
+                  }}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -197,7 +230,10 @@ export function DisciplinePanel({ disciplines, onCreateDiscipline, onUpdateDisci
                       type="number"
                       min={1}
                       value={penaltyValue}
-                      onChange={(e) => setPenaltyValue(Number(e.target.value))}
+                      onChange={(e) => {
+                        setPenaltyValue(Number(e.target.value))
+                        setHasUnsavedChanges(true)
+                      }}
                     />
                   </div>
                 )}
@@ -213,10 +249,7 @@ export function DisciplinePanel({ disciplines, onCreateDiscipline, onUpdateDisci
 
         {/* Edit Dialog */}
         {isExpanded && (
-          <Dialog open={editOpen} onOpenChange={(isOpen) => {
-            setEditOpen(isOpen)
-            if (!isOpen) resetForm()
-          }}>
+          <Dialog open={editOpen} onOpenChange={handleEditDialogChange}>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Editar Disciplina</DialogTitle>
@@ -227,7 +260,10 @@ export function DisciplinePanel({ disciplines, onCreateDiscipline, onUpdateDisci
                 <Input
                   id="edit-disc-name"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(e) => {
+                    setName(e.target.value)
+                    setHasUnsavedChanges(true)
+                  }}
                   placeholder="Ex: Nao cumpri meta de agua"
                   required
                 />
@@ -238,7 +274,10 @@ export function DisciplinePanel({ disciplines, onCreateDiscipline, onUpdateDisci
                 <Input
                   id="edit-disc-desc"
                   value={description}
-                  onChange={(e) => setDescription(e.target.value)}
+                  onChange={(e) => {
+                    setDescription(e.target.value)
+                    setHasUnsavedChanges(true)
+                  }}
                   placeholder="Quando aplicar esta penalidade"
                 />
               </div>
@@ -246,7 +285,10 @@ export function DisciplinePanel({ disciplines, onCreateDiscipline, onUpdateDisci
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Tipo de Penalidade</Label>
-                  <Select value={penaltyType} onValueChange={(v) => setPenaltyType(v as typeof penaltyType)}>
+                  <Select value={penaltyType} onValueChange={(v) => {
+                    setPenaltyType(v as typeof penaltyType)
+                    setHasUnsavedChanges(true)
+                  }}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -266,7 +308,10 @@ export function DisciplinePanel({ disciplines, onCreateDiscipline, onUpdateDisci
                       type="number"
                       min={1}
                       value={penaltyValue}
-                      onChange={(e) => setPenaltyValue(Number(e.target.value))}
+                      onChange={(e) => {
+                        setPenaltyValue(Number(e.target.value))
+                        setHasUnsavedChanges(true)
+                      }}
                     />
                   </div>
                 )}
