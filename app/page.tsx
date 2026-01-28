@@ -313,18 +313,21 @@ export default function HomePage() {
 
   const handleCreateReward = async (reward: Partial<Reward>) => {
     const supabase = createBrowserClient()
-    const { error } = await supabase.from('rewards').insert({
+    console.log('Criando recompensa:', reward)
+    const { data, error } = await supabase.from('rewards').insert({
       ...reward,
       user_id: USER_ID,
-    })
+    }).select()
     
     if (error) {
-      toast({ title: 'Erro ao criar recompensa', variant: 'destructive' })
+      console.error('Erro ao criar recompensa:', error)
+      toast({ title: 'Erro ao criar recompensa', description: error.message, variant: 'destructive' })
       return
     }
     
+    console.log('Recompensa criada com sucesso:', data)
     toast({ title: 'Recompensa criada!' })
-    setTimeout(() => mutate('rewards'), 100)
+    mutate('rewards')
   }
 
   const handleUpdateReward = async (rewardId: string, reward: Partial<Reward>) => {
@@ -403,18 +406,21 @@ export default function HomePage() {
 
   const handleCreateDiscipline = async (discipline: Partial<Discipline>) => {
     const supabase = createBrowserClient()
-    const { error } = await supabase.from('disciplines').insert({
+    console.log('Criando disciplina:', discipline)
+    const { data, error } = await supabase.from('disciplines').insert({
       ...discipline,
       user_id: USER_ID,
-    })
+    }).select()
     
     if (error) {
-      toast({ title: 'Erro ao criar disciplina', variant: 'destructive' })
+      console.error('Erro ao criar disciplina:', error)
+      toast({ title: 'Erro ao criar disciplina', description: error.message, variant: 'destructive' })
       return
     }
     
+    console.log('Disciplina criada com sucesso:', data)
     toast({ title: 'Disciplina criada!' })
-    setTimeout(() => mutate('disciplines'), 100)
+    mutate('disciplines')
   }
 
   const handleUpdateDiscipline = async (disciplineId: string, discipline: Partial<Discipline>) => {
