@@ -456,9 +456,14 @@ export function HabitGrid({
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
-          <span className="text-xs font-medium text-center flex-1">
-            Semana {mobileWeekIndex + 1}
-          </span>
+          <div className="text-center flex-1">
+            <span className="text-xs font-medium">Semana {mobileWeekIndex + 1}</span>
+            {mobileWeekDays.length > 0 && (
+              <div className="text-[10px] text-muted-foreground">
+                {mobileWeekDays[0].date} - {mobileWeekDays[mobileWeekDays.length - 1].date}
+              </div>
+            )}
+          </div>
           <button
             onClick={() => setMobileWeekIndex(mobileWeekIndex + 1)}
             disabled={mobileWeekIndex >= Object.keys(weekGroups).length - 1}
@@ -494,6 +499,9 @@ export function HabitGrid({
                     </th>
                   )
                 })}
+                <th className="border border-border p-0.5 sm:p-1 text-center min-w-[50px] bg-secondary">
+                  <div className="text-xs font-medium">Ações</div>
+                </th>
               </tr>
             </thead>
             
@@ -584,6 +592,74 @@ export function HabitGrid({
                       </td>
                     )
                   })}
+                  <td className="border border-border p-0.5 text-center min-w-[50px]">
+                    <div className="flex flex-col gap-0.5">
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          // Marcar todos os dias da semana para este hábito
+                          mobileWeekDays.forEach(day => {
+                            const cellKey = `${habit.id}-${day.dateStr}`
+                            if (!isCompleted(habit.id, day.dateStr)) {
+                              setProcessingCells(prev => new Set(prev).add(cellKey))
+                              onToggleHabit(habit.id, day.dateStr, true)
+                                .then(() => {
+                                  setProcessingCells(prev => {
+                                    const next = new Set(prev)
+                                    next.delete(cellKey)
+                                    return next
+                                  })
+                                })
+                                .catch(() => {
+                                  setProcessingCells(prev => {
+                                    const next = new Set(prev)
+                                    next.delete(cellKey)
+                                    return next
+                                  })
+                                })
+                            }
+                          })
+                        }}
+                        className="text-[8px] px-1 py-0.5 rounded bg-primary text-primary-foreground hover:opacity-90 active:scale-95 transition-all"
+                        title="Marcar todos"
+                      >
+                        ✓
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          // Desmarcar todos os dias da semana para este hábito
+                          mobileWeekDays.forEach(day => {
+                            const cellKey = `${habit.id}-${day.dateStr}`
+                            if (isCompleted(habit.id, day.dateStr)) {
+                              setProcessingCells(prev => new Set(prev).add(cellKey))
+                              onToggleHabit(habit.id, day.dateStr, false)
+                                .then(() => {
+                                  setProcessingCells(prev => {
+                                    const next = new Set(prev)
+                                    next.delete(cellKey)
+                                    return next
+                                  })
+                                })
+                                .catch(() => {
+                                  setProcessingCells(prev => {
+                                    const next = new Set(prev)
+                                    next.delete(cellKey)
+                                    return next
+                                  })
+                                })
+                            }
+                          })
+                        }}
+                        className="text-[8px] px-1 py-0.5 rounded bg-destructive/20 text-destructive hover:bg-destructive/30 active:scale-95 transition-all"
+                        title="Desmarcar todos"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
