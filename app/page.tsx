@@ -8,10 +8,12 @@ import { HabitAnalysisTable } from '@/components/habit-analysis-table'
 import { ProgressLineChart } from '@/components/progress-line-chart'
 import { RewardsPanel } from '@/components/rewards-panel'
 import { DisciplinePanel } from '@/components/discipline-panel'
+import { MobilePage } from '@/components/mobile-page'
 import { Logo } from '@/components/logo'
 import { createBrowserClient } from '@/lib/supabase/client'
 import { Habit, HabitCompletion, UserStats, Reward, Discipline } from '@/lib/types'
 import { Trophy, Flame, Target, Zap } from 'lucide-react'
+import { useIsMobile } from '@/hooks/use-mobile'
 
 const USER_ID = 'demo-user-001'
 
@@ -88,6 +90,7 @@ export default function HomePage() {
   const today = new Date()
   const [selectedYear, setSelectedYear] = useState(today.getFullYear())
   const [selectedMonth, setSelectedMonth] = useState(today.getMonth())
+  const isMobile = useIsMobile()
   
   const completionKey = `completions-${selectedYear}-${selectedMonth}`
   
@@ -497,6 +500,39 @@ export default function HomePage() {
     return totalPossible > 0 ? Math.round((completed / totalPossible) * 100) : 0
   })()
 
+  // Render Mobile Version
+  if (isMobile) {
+    return (
+      <MobilePage
+        habits={habits}
+        completions={completions}
+        stats={stats || null}
+        rewards={rewards}
+        disciplines={disciplines}
+        selectedYear={selectedYear}
+        selectedMonth={selectedMonth}
+        onToggleHabit={handleToggleHabit}
+        onCreateHabit={handleCreateHabit}
+        onUpdateHabit={handleUpdateHabit}
+        onDeleteHabit={handleDeleteHabit}
+        onMonthChange={(year, month) => {
+          setSelectedYear(year)
+          setSelectedMonth(month)
+          mutate(`completions-${year}-${month}`)
+        }}
+        onCreateReward={handleCreateReward}
+        onUpdateReward={handleUpdateReward}
+        onDeleteReward={handleDeleteReward}
+        onClaimReward={handleClaimReward}
+        onCreateDiscipline={handleCreateDiscipline}
+        onUpdateDiscipline={handleUpdateDiscipline}
+        onDeleteDiscipline={handleDeleteDiscipline}
+        onTriggerDiscipline={handleTriggerDiscipline}
+      />
+    )
+  }
+
+  // Render Desktop Version
   return (
     <div className="w-full overflow-x-hidden">
     <div className="min-h-screen bg-background flex flex-col">
