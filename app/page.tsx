@@ -542,36 +542,42 @@ export default function HomePage() {
   return (
     <div className="w-full overflow-x-hidden">
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Header Banner */}
-      <header className="bg-foreground text-background py-4 sm:py-6 md:py-8 w-full">
-        <div className="mx-auto max-w-5xl text-center px-3 sm:px-4">
+      {/* Header Banner com Gradiente Roxo + Laranja */}
+      <header className="relative bg-gradient-to-r from-primary via-purple-700 to-accent text-primary-foreground py-4 sm:py-6 md:py-8 w-full overflow-hidden">
+        {/* Background decorativo */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 left-0 w-96 h-96 bg-accent rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
+          <div className="absolute bottom-0 right-0 w-96 h-96 bg-primary rounded-full blur-3xl translate-x-1/2 translate-y-1/2"></div>
+        </div>
+        
+        <div className="mx-auto max-w-5xl text-center px-3 sm:px-4 relative z-10">
           <div className="flex items-center justify-center mb-2 sm:mb-3">
-            <Logo size={40} className="sm:w-12 sm:h-12" />
+            <Logo size={40} className="sm:w-12 sm:h-12 drop-shadow-lg" />
           </div>
-          <p className="text-xs sm:text-sm md:text-base font-semibold mb-1 tracking-wide">MyTaskFlow</p>
-          <h1 className="text-sm sm:text-base md:text-lg font-normal text-balance px-2 opacity-90">
+          <p className="text-xs sm:text-sm md:text-base font-semibold mb-1 tracking-wide drop-shadow">MyTaskFlow</p>
+          <h1 className="text-sm sm:text-base md:text-lg font-normal text-balance px-2 opacity-95 drop-shadow">
             Organize seus hábitos e conquiste seus objetivos
           </h1>
         </div>
       </header>
       
-      {/* Stats Bar */}
-      <div className="border-b border-border bg-card w-full">
+      {/* Stats Bar com Gradiente */}
+      <div className="border-b border-border bg-gradient-to-r from-primary/5 via-transparent to-accent/5 w-full">
         <div className="mx-auto max-w-5xl px-3 py-2 sm:px-4 sm:py-3 w-full">
           <div className="grid grid-cols-3 gap-2 sm:gap-3 md:flex md:gap-6 text-xs sm:text-sm">
-            <div className="flex items-center gap-1 sm:gap-2">
+            <div className="flex items-center gap-1 sm:gap-2 px-2 py-1 rounded-lg bg-accent/10">
               <Zap className="h-3 w-3 sm:h-4 sm:w-4 text-accent flex-shrink-0" />
-              <span className="font-medium">{stats?.total_points || 0}</span>
+              <span className="font-medium text-accent">{stats?.total_points || 0}</span>
               <span className="text-muted-foreground hidden md:inline">pontos</span>
             </div>
-            <div className="flex items-center gap-1 sm:gap-2">
-              <Flame className="h-3 w-3 sm:h-4 sm:w-4 text-accent flex-shrink-0" />
-              <span className="font-medium">{stats?.current_streak || 0}</span>
+            <div className="flex items-center gap-1 sm:gap-2 px-2 py-1 rounded-lg bg-orange-500/10">
+              <Flame className="h-3 w-3 sm:h-4 sm:w-4 text-orange-500 flex-shrink-0" />
+              <span className="font-medium text-orange-500">{stats?.current_streak || 0}</span>
               <span className="text-muted-foreground hidden md:inline">sequencia</span>
             </div>
-            <div className="flex items-center gap-1 sm:gap-2">
-              <Target className="h-3 w-3 sm:h-4 sm:w-4 text-accent flex-shrink-0" />
-              <span className="font-medium">{monthlyProgress}%</span>
+            <div className="flex items-center gap-1 sm:gap-2 px-2 py-1 rounded-lg bg-primary/10">
+              <Target className="h-3 w-3 sm:h-4 sm:w-4 text-primary flex-shrink-0" />
+              <span className="font-medium text-primary">{monthlyProgress}%</span>
               <span className="text-muted-foreground hidden md:inline">mes</span>
             </div>
           </div>

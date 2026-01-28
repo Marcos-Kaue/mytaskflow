@@ -1,26 +1,51 @@
-<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg width="64" height="64" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#1a1a1a" stop-opacity="1" />
-      <stop offset="100%" stop-color="#1a1a1a" stop-opacity="0.7" />
+    <!-- Gradiente roxo para laranja -->
+    <linearGradient id="purpleOrange" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#7C3AED" />
+      <stop offset="100%" stopColor="#F97316" />
+    </linearGradient>
+    
+    <!-- Gradiente laranja para roxo -->
+    <linearGradient id="orangePurple" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#F97316" />
+      <stop offset="100%" stopColor="#7C3AED" />
     </linearGradient>
   </defs>
   
-  <!-- Background circle -->
-  <circle cx="32" cy="32" r="30" fill="#f5f5f5"/>
+  <!-- Background branco -->
+  <rect width="120" height="120" fill="white"/>
   
-  <!-- Outer circle -->
-  <circle cx="32" cy="32" r="28" stroke="url(#iconGradient)" stroke-width="2" fill="none"/>
+  <!-- Círculo de fundo com gradiente roxo-laranja -->
+  <circle cx="60" cy="60" r="55" fill="url(#purpleOrange)" opacity="0.15" />
   
-  <!-- Checkmark forming a "T" -->
-  <path d="M 20 32 L 28 40 L 44 20" stroke="#1a1a1a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- Círculo de borda com gradiente -->
+  <circle cx="60" cy="60" r="50" stroke="url(#orangePurple)" strokeWidth="2" fill="none" />
   
-  <!-- Vertical line of "T" -->
-  <line x1="32" y1="20" x2="32" y2="13" stroke="#1a1a1a" stroke-width="4" stroke-linecap="round"/>
+  <!-- Checkmark principal - roxo -->
+  <path
+    d="M 35 62 L 52 78 L 85 38"
+    stroke="#7C3AED"
+    strokeWidth="8"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    fill="none"
+  />
   
-  <!-- Progress dots -->
-  <circle cx="17" cy="48" r="2" fill="#1a1a1a" opacity="0.6"/>
-  <circle cx="26" cy="51" r="2" fill="#1a1a1a" opacity="0.7"/>
-  <circle cx="38" cy="51" r="2" fill="#1a1a1a" opacity="0.8"/>
-  <circle cx="47" cy="48" r="2" fill="#1a1a1a" opacity="1"/>
+  <!-- Checkmark destaque - laranja -->
+  <path
+    d="M 35 62 L 52 78 L 85 38"
+    stroke="#F97316"
+    strokeWidth="4"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    fill="none"
+    opacity="0.7"
+  />
+  
+  <!-- Ponto de destaque no canto superior direito -->
+  <circle cx="95" cy="35" r="5" fill="#F97316" />
+  
+  <!-- Pequena linha decorativa -->
+  <line x1="95" y1="42" x2="95" y2="48" stroke="#F97316" strokeWidth="2" strokeLinecap="round" opacity="0.6" />
 </svg>
