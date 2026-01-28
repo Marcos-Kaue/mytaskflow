@@ -16,6 +16,13 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from '@/components/ui/drawer'
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -23,6 +30,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Habit } from '@/lib/types'
+import { useIsMobile } from '@/hooks/use-mobile'
 
 interface HabitFormProps {
   onSubmit: (habit: Partial<Habit>) => void
@@ -61,6 +69,7 @@ export function HabitForm({ onSubmit, editingHabit, onClose }: HabitFormProps) {
     editingHabit?.frequency || 'daily'
   )
   const [targetCount, setTargetCount] = useState(editingHabit?.target_count || 1)
+  const isMobile = useIsMobile()
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -200,6 +209,21 @@ export function HabitForm({ onSubmit, editingHabit, onClose }: HabitFormProps) {
   )
 
   if (editingHabit) {
+    if (isMobile) {
+      return (
+        <Drawer open={open} onOpenChange={handleOpenChange}>
+          <DrawerContent className="max-h-[90vh]">
+            <DrawerHeader>
+              <DrawerTitle>Editar Habito</DrawerTitle>
+            </DrawerHeader>
+            <div className="px-4 pb-4 overflow-y-auto max-h-[calc(90vh-120px)]">
+              {content}
+            </div>
+          </DrawerContent>
+        </Drawer>
+      )
+    }
+
     return (
       <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogContent>
@@ -209,6 +233,27 @@ export function HabitForm({ onSubmit, editingHabit, onClose }: HabitFormProps) {
           {content}
         </DialogContent>
       </Dialog>
+    )
+  }
+
+  if (isMobile) {
+    return (
+      <Drawer open={open} onOpenChange={handleOpenChange}>
+        <DrawerTrigger asChild>
+          <Button className="gap-2">
+            <Plus className="h-4 w-4" />
+            Novo Habito
+          </Button>
+        </DrawerTrigger>
+        <DrawerContent className="max-h-[90vh]">
+          <DrawerHeader>
+            <DrawerTitle>Criar Novo Habito</DrawerTitle>
+          </DrawerHeader>
+          <div className="px-4 pb-4 overflow-y-auto max-h-[calc(90vh-120px)]">
+            {content}
+          </div>
+        </DrawerContent>
+      </Drawer>
     )
   }
 
