@@ -9,20 +9,6 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from '@/components/ui/drawer'
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -31,6 +17,7 @@ import {
 } from '@/components/ui/select'
 import { Habit } from '@/lib/types'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 interface HabitFormProps {
   onSubmit: (habit: Partial<Habit>) => void
@@ -60,7 +47,7 @@ const colors = [
 ]
 
 export function HabitForm({ onSubmit, editingHabit, onClose }: HabitFormProps) {
-  const [open, setOpen] = useState(!!editingHabit)
+  const [showForm, setShowForm] = useState(!!editingHabit)
   const [name, setName] = useState(editingHabit?.name || '')
   const [description, setDescription] = useState(editingHabit?.description || '')
   const [icon, setIcon] = useState(editingHabit?.icon || 'exercise')
@@ -86,7 +73,7 @@ export function HabitForm({ onSubmit, editingHabit, onClose }: HabitFormProps) {
     })
     
     resetForm()
-    setOpen(false)
+    setShowForm(false)
     onClose?.()
   }
 
@@ -99,15 +86,36 @@ export function HabitForm({ onSubmit, editingHabit, onClose }: HabitFormProps) {
     setTargetCount(1)
   }
 
-  const handleOpenChange = (newOpen: boolean) => {
-    setOpen(newOpen)
-    if (!newOpen) {
-      resetForm()
-      onClose?.()
-    }
+  const handleCancel = () => {
+    resetForm()
+    setShowForm(false)
+    onClose?.()
   }
 
-  const content = (
+  if (!isMobile && !showForm && !editingHabit) {
+    return (
+      <Button className="gap-2" onClick={() => setShowForm(true)}>
+        <Plus className="h-4 w-4" />
+        Novo Habito
+      </Button>
+    )
+  }
+
+  if (!isMobile && !showForm && editingHabit) {
+    return null
+  }
+
+  // Mobile or showing form
+  if (!showForm && !editingHabit) {
+    return (
+      <Button className="gap-2 w-full sm:w-auto" onClick={() => setShowForm(true)}>
+        <Plus className="h-4 w-4" />
+        Novo Habito
+      </Button>
+    )
+  }
+
+  const formContent = (
     <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
       <div className="space-y-1.5 sm:space-y-2">
         <Label htmlFor="name" className="text-xs sm:text-sm">Nome do Habito</Label>
@@ -118,6 +126,7 @@ export function HabitForm({ onSubmit, editingHabit, onClose }: HabitFormProps) {
           placeholder="Ex: Beber 2L de agua"
           className="text-xs sm:text-sm h-8 sm:h-9"
           required
+          autoFocus
         />
       </div>
 
@@ -202,75 +211,70 @@ export function HabitForm({ onSubmit, editingHabit, onClose }: HabitFormProps) {
         </div>
       </div>
 
-      <Button type="submit" className="w-full text-xs sm:text-sm h-8 sm:h-9">
-        {editingHabit ? 'Salvar Alteracoes' : 'Criar Habito'}
-      </Button>
+      <div className="flex gap-2">
+        <Button type="submit" className="flex-1 text-xs sm:text-sm h-8 sm:h-9">
+          {editingHabit ? 'Salvar' : 'Criar'}
+        </Button>
+        <Button 
+          type="button" 
+          variant="outline" 
+          onClick={handleCancel}
+          className="flex-1 text-xs sm:text-sm h-8 sm:h-9"
+        >
+          Cancelar
+        </Button>
+      </div>
     </form>
   )
 
-  if (editingHabit) {
-    if (isMobile) {
-      return (
-        <Drawer open={open} onOpenChange={handleOpenChange}>
-          <DrawerContent className="max-h-[90vh]">
-            <DrawerHeader>
-              <DrawerTitle>Editar Habito</DrawerTitle>
-            </DrawerHeader>
-            <div className="px-4 pb-4 overflow-y-auto max-h-[calc(90vh-120px)]">
-              {content}
-            </div>
-          </DrawerContent>
-        </Drawer>
-      )
-    }
-
+  // Desktop: show form inline when active
+  if (!isMobile && showForm) {
     return (
-      <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Editar Habito</DialogTitle>
-          </DialogHeader>
-          {content}
-        </DialogContent>
-      </Dialog>
+      <Card className="border-2 border-primary/20 bg-primary/5">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base sm:text-lg">
+            {editingHabit ? 'Editar Habito' : 'Novo Habito'}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {formContent}
+        </CardContent>
+      </Card>
     )
   }
 
-  if (isMobile) {
+  // Mobile: show form as expanded card
+  if (isMobile && showForm) {
     return (
-      <Drawer open={open} onOpenChange={handleOpenChange}>
-        <DrawerTrigger asChild>
-          <Button className="gap-2">
-            <Plus className="h-4 w-4" />
-            Novo Habito
-          </Button>
-        </DrawerTrigger>
-        <DrawerContent className="max-h-[90vh]">
-          <DrawerHeader>
-            <DrawerTitle>Criar Novo Habito</DrawerTitle>
-          </DrawerHeader>
-          <div className="px-4 pb-4 overflow-y-auto max-h-[calc(90vh-120px)]">
-            {content}
-          </div>
-        </DrawerContent>
-      </Drawer>
+      <div className="fixed inset-0 z-50 bg-black/50 flex items-end">
+        <Card className="w-full rounded-t-2xl border-0 border-t-2 border-primary/20 max-h-[90vh] overflow-y-auto">
+          <CardHeader className="sticky top-0 bg-background border-b flex items-center justify-between pb-3">
+            <CardTitle className="text-base">
+              {editingHabit ? 'Editar Habito' : 'Novo Habito'}
+            </CardTitle>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={handleCancel}
+              className="h-8 w-8 p-0"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </CardHeader>
+          <CardContent className="pt-4">
+            {formContent}
+          </CardContent>
+        </Card>
+      </div>
     )
   }
 
+  // Default: show button
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
-        <Button className="gap-2">
-          <Plus className="h-4 w-4" />
-          Novo Habito
-        </Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Criar Novo Habito</DialogTitle>
-        </DialogHeader>
-        {content}
-      </DialogContent>
-    </Dialog>
+    <Button className="gap-2 w-full sm:w-auto" onClick={() => setShowForm(true)}>
+      <Plus className="h-4 w-4" />
+      Novo Habito
+    </Button>
   )
 }
