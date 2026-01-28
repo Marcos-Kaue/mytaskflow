@@ -51,6 +51,7 @@ export function MobilePage({
   selectedMonth,
   onToggleHabit,
   onCreateHabit,
+  onDeleteHabit,
   onMonthChange,
   onClaimReward,
   onTriggerDiscipline,
