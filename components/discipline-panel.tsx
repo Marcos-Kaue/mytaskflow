@@ -3,7 +3,7 @@
 import React from "react"
 
 import { useState } from 'react'
-import { AlertTriangle, Plus, Zap, Clock, Edit2, Trash2, ChevronDown } from 'lucide-react'
+import { AlertTriangle, Plus, Edit2, Trash2, ChevronDown } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -11,9 +11,9 @@ import { Label } from '@/components/ui/label'
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog'
 import {
   AlertDialog,
@@ -42,19 +42,6 @@ interface DisciplinePanelProps {
   onTriggerDiscipline: (disciplineId: string) => void
 }
 
-const getPenaltyLabel = (type: string, value: number): string => {
-  switch (type) {
-    case 'points':
-      return `Remover ${value} pontos`
-    case 'streak_reset':
-      return `Resetar sequências`
-    case 'custom':
-      return `${value} dias sem recompensa`
-    default:
-      return `Penalidade: ${value}`
-  }
-}
-
 export function DisciplinePanel({ disciplines, onCreateDiscipline, onUpdateDiscipline, onDeleteDiscipline, onTriggerDiscipline }: DisciplinePanelProps) {
   const [open, setOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
@@ -70,6 +57,8 @@ export function DisciplinePanel({ disciplines, onCreateDiscipline, onUpdateDisci
     e.preventDefault()
     if (!name.trim()) return
     
+    console.log('Criando disciplina:', { name, description, penaltyType, penaltyValue })
+    
     if (editingDiscipline) {
       onUpdateDiscipline(editingDiscipline.id, {
         name: name.trim(),
@@ -77,7 +66,6 @@ export function DisciplinePanel({ disciplines, onCreateDiscipline, onUpdateDisci
         penalty_type: penaltyType,
         penalty_value: penaltyValue,
       })
-      setEditingDiscipline(null)
     } else {
       onCreateDiscipline({
         name: name.trim(),
@@ -87,10 +75,7 @@ export function DisciplinePanel({ disciplines, onCreateDiscipline, onUpdateDisci
       })
     }
     
-    setName('')
-    setDescription('')
-    setPenaltyType('points')
-    setPenaltyValue(50)
+    resetForm()
     setOpen(false)
     setEditOpen(false)
   }
@@ -99,7 +84,7 @@ export function DisciplinePanel({ disciplines, onCreateDiscipline, onUpdateDisci
     setEditingDiscipline(discipline)
     setName(discipline.name)
     setDescription(discipline.description || '')
-    setPenaltyType(discipline.penalty_type)
+    setPenaltyType(discipline.penalty_type as 'points' | 'streak_reset' | 'custom')
     setPenaltyValue(discipline.penalty_value)
     setEditOpen(true)
   }
@@ -123,7 +108,7 @@ export function DisciplinePanel({ disciplines, onCreateDiscipline, onUpdateDisci
       case 'points':
         return `-${value} pontos`
       case 'streak_reset':
-        return 'Zera sequencia'
+        return 'Zera sequência'
       case 'custom':
         return `Penalidade: ${value}`
       default:
@@ -144,263 +129,218 @@ export function DisciplinePanel({ disciplines, onCreateDiscipline, onUpdateDisci
   const activeDisciplines = disciplines.filter(d => !d.triggered_at || d.triggered_at === d.created_at)
   const triggeredDisciplines = disciplines.filter(d => d.triggered_at && d.triggered_at !== d.created_at)
 
+  const formContent = (isEdit: boolean) => (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor={isEdit ? "edit-disc-name" : "disc-name"}>Nome</Label>
+        <Input
+          id={isEdit ? "edit-disc-name" : "disc-name"}
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Ex: Faltar no treino"
+          required
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor={isEdit ? "edit-disc-desc" : "disc-desc"}>Descrição (opcional)</Label>
+        <Input
+          id={isEdit ? "edit-disc-desc" : "disc-desc"}
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="Detalhes da penalidade"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor={isEdit ? "edit-penalty-type" : "penalty-type"}>Tipo de Penalidade</Label>
+        <Select value={penaltyType} onValueChange={(v) => setPenaltyType(v as typeof penaltyType)}>
+          <SelectTrigger id={isEdit ? "edit-penalty-type" : "penalty-type"}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="points">Remover Pontos</SelectItem>
+            <SelectItem value="streak_reset">Resetar Sequência</SelectItem>
+            <SelectItem value="custom">Personalizado</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {penaltyType !== 'streak_reset' && (
+        <div className="space-y-2">
+          <Label htmlFor={isEdit ? "edit-penalty-value" : "penalty-value"}>
+            Valor {penaltyType === 'points' ? '(pontos)' : '(dias)'}
+          </Label>
+          <Input
+            id={isEdit ? "edit-penalty-value" : "penalty-value"}
+            type="number"
+            min={1}
+            value={penaltyValue}
+            onChange={(e) => setPenaltyValue(Number(e.target.value))}
+          />
+        </div>
+      )}
+
+      <Button type="submit" className="w-full">
+        {isEdit ? 'Atualizar Disciplina' : 'Criar Disciplina'}
+      </Button>
+    </form>
+  )
+
   return (
-    <Card className="overflow-hidden">
-      <CardHeader className="flex flex-row items-center justify-between cursor-pointer p-3 sm:p-6" onClick={() => setIsExpanded(!isExpanded)}>
-        <div className="flex items-center gap-2">
-          <ChevronDown className={cn("h-4 w-4 sm:h-5 sm:w-5 transition-transform flex-shrink-0", isExpanded && "rotate-180")} />
-          <CardTitle className="flex items-center gap-1.5 sm:gap-2 text-sm sm:text-lg">
-            <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-destructive flex-shrink-0" />
-            <span className="whitespace-nowrap">Disciplinas</span>
-          </CardTitle>
-        </div>
-        {!isExpanded && (
-          <div className="flex items-center gap-1 text-xs sm:text-sm font-medium text-destructive flex-shrink-0">
-            <Zap className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
-            {disciplines.filter(d => !d.triggered_at || d.triggered_at === d.created_at).length} ativas
+    <>
+      <Card className="overflow-hidden border-destructive/20">
+        <CardHeader className="flex flex-row items-center justify-between cursor-pointer p-3 sm:p-6 bg-destructive/5" onClick={() => setIsExpanded(!isExpanded)}>
+          <div className="flex items-center gap-2">
+            <ChevronDown className={cn("h-4 w-4 sm:h-5 sm:w-5 transition-transform flex-shrink-0", isExpanded && "rotate-180")} />
+            <CardTitle className="flex items-center gap-1.5 sm:gap-2 text-sm sm:text-lg">
+              <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-destructive flex-shrink-0" />
+              <span className="whitespace-nowrap">Disciplina</span>
+            </CardTitle>
           </div>
-        )}
+          {isExpanded && (
+            <Button 
+              size="sm" 
+              variant="outline" 
+              className="gap-1 text-xs sm:text-sm h-7 sm:h-9 px-2 sm:px-4 flex-shrink-0"
+              onClick={(e) => {
+                e.stopPropagation()
+                setOpen(true)
+              }}
+            >
+              <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">Nova</span>
+            </Button>
+          )}
+        </CardHeader>
+
         {isExpanded && (
-          <Dialog open={open} onOpenChange={(isOpen) => {
-            setOpen(isOpen)
-            if (!isOpen) resetForm()
-          }}>
-            <DialogTrigger asChild>
-              <Button size="sm" variant="outline" className="gap-1 bg-transparent text-xs sm:text-sm h-7 sm:h-9 px-2 sm:px-4 flex-shrink-0">
-                <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="hidden sm:inline">Nova</span>
-              </Button>
-            </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Criar Disciplina</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="disc-name">Nome da Disciplina</Label>
-                <Input
-                  id="disc-name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Ex: Nao cumpri meta de agua"
-                  required
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="disc-desc">Descricao (opcional)</Label>
-                <Input
-                  id="disc-desc"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Quando aplicar esta penalidade"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Tipo de Penalidade</Label>
-                  <Select value={penaltyType} onValueChange={(v) => setPenaltyType(v as typeof penaltyType)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="points">Perder Pontos</SelectItem>
-                      <SelectItem value="streak_reset">Zerar Sequencia</SelectItem>
-                      <SelectItem value="custom">Personalizado</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {penaltyType !== 'streak_reset' && (
+          <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-6">
+            {activeDisciplines.length === 0 && triggeredDisciplines.length === 0 ? (
+              <p className="py-4 text-center text-sm text-muted-foreground">
+                Configure disciplinas para se manter motivado!
+              </p>
+            ) : (
+              <>
+                {activeDisciplines.length > 0 && (
                   <div className="space-y-2">
-                    <Label htmlFor="penalty-value">Valor</Label>
-                    <Input
-                      id="penalty-value"
-                      type="number"
-                      min={1}
-                      value={penaltyValue}
-                      onChange={(e) => setPenaltyValue(Number(e.target.value))}
-                    />
+                    <p className="text-xs font-medium text-destructive">Penalidades Ativas</p>
+                    {activeDisciplines.map((discipline) => (
+                      <div 
+                        key={discipline.id}
+                        className="rounded-lg border border-destructive/30 bg-destructive/5 p-2.5 sm:p-3"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-medium text-foreground text-sm sm:text-base truncate">{discipline.name}</h4>
+                            {discipline.description && (
+                              <p className="text-[10px] sm:text-xs text-muted-foreground line-clamp-1">{discipline.description}</p>
+                            )}
+                            <p className="text-[10px] sm:text-xs text-destructive font-medium mt-1">
+                              {getPenaltyLabel(discipline.penalty_type, discipline.penalty_value)}
+                            </p>
+                          </div>
+                          <div className="flex gap-0.5 sm:gap-1 flex-shrink-0">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleEdit(discipline)
+                              }}
+                              className="p-1 hover:bg-muted rounded transition-colors"
+                              title="Editar"
+                            >
+                              <Edit2 className="h-3 w-3 text-muted-foreground" />
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleDelete(discipline.id)
+                              }}
+                              className="p-1 hover:bg-muted rounded transition-colors"
+                              title="Excluir"
+                            >
+                              <Trash2 className="h-3 w-3 text-destructive" />
+                            </button>
+                          </div>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          className="w-full mt-2 text-xs sm:text-sm h-7 sm:h-8"
+                          onClick={() => setTriggerConfirmId(discipline.id)}
+                        >
+                          Aplicar Penalidade
+                        </Button>
+                      </div>
+                    ))}
                   </div>
                 )}
-              </div>
 
-              <Button type="submit" className="w-full">
-                {editingDiscipline ? 'Atualizar Disciplina' : 'Criar Disciplina'}
-              </Button>
-            </form>
-          </DialogContent>
-        </Dialog>
-            )}
-
-        {/* Edit Dialog */}
-        {isExpanded && (
-          <Dialog open={editOpen} onOpenChange={(isOpen) => {
-            setEditOpen(isOpen)
-            if (!isOpen) resetForm()
-          }}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Editar Disciplina</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="edit-disc-name">Nome da Disciplina</Label>
-                <Input
-                  id="edit-disc-name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Ex: Nao cumpri meta de agua"
-                  required
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="edit-disc-desc">Descricao (opcional)</Label>
-                <Input
-                  id="edit-disc-desc"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Quando aplicar esta penalidade"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Tipo de Penalidade</Label>
-                  <Select value={penaltyType} onValueChange={(v) => setPenaltyType(v as typeof penaltyType)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="points">Perder Pontos</SelectItem>
-                      <SelectItem value="streak_reset">Zerar Sequencia</SelectItem>
-                      <SelectItem value="custom">Personalizado</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {penaltyType !== 'streak_reset' && (
-                  <div className="space-y-2">
-                    <Label htmlFor="edit-penalty-value">Valor</Label>
-                    <Input
-                      id="edit-penalty-value"
-                      type="number"
-                      min={1}
-                      value={penaltyValue}
-                      onChange={(e) => setPenaltyValue(Number(e.target.value))}
-                    />
+                {triggeredDisciplines.length > 0 && (
+                  <div className="border-t pt-3">
+                    <p className="mb-2 text-xs font-medium text-muted-foreground">Aplicadas</p>
+                    <div className="space-y-2">
+                      {triggeredDisciplines.slice(0, 3).map((discipline) => (
+                        <div 
+                          key={discipline.id}
+                          className="flex items-center gap-2 rounded-lg bg-secondary/50 p-2 opacity-60"
+                        >
+                          <AlertTriangle className="h-3 w-3 text-destructive flex-shrink-0" />
+                          <span className="text-sm line-through">{discipline.name}</span>
+                          <span className="ml-auto text-[10px] text-muted-foreground">
+                            {formatDate(discipline.triggered_at || '')}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
-              </div>
-
-              <Button type="submit" className="w-full">
-                Atualizar Disciplina
-              </Button>
-            </form>
-          </DialogContent>
-        </Dialog>
-        )}
-      </CardHeader>
-      {isExpanded && (
-        <>
-        <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-6">
-        <div className="rounded-lg bg-destructive/10 p-2.5 sm:p-3">
-          <p className="text-xs sm:text-sm text-muted-foreground">
-            Disciplinas sao penalidades que voce aplica quando nao cumpre suas metas. 
-            Use com responsabilidade para manter sua motivacao!
-          </p>
-        </div>
-
-        {activeDisciplines.length === 0 && triggeredDisciplines.length === 0 ? (
-          <p className="py-4 text-center text-xs sm:text-sm text-muted-foreground">
-            Crie disciplinas para manter seu foco!
-          </p>
-        ) : (
-          <div className="space-y-2 sm:space-y-3">
-            {activeDisciplines.map((discipline) => (
-              <div 
-                key={discipline.id}
-                className="rounded-lg border border-destructive/30 bg-destructive/5 p-2.5 sm:p-3"
-              >
-                <div className="flex items-start justify-between gap-2 sm:gap-3">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-foreground text-sm sm:text-base truncate">{discipline.name}</h4>
-                        {discipline.description && (
-                          <p className="text-[10px] sm:text-xs text-muted-foreground line-clamp-1">{discipline.description}</p>
-                        )}
-                      </div>
-                      <div className="flex gap-0.5 sm:gap-1 flex-shrink-0">
-                        <button
-                          onClick={() => handleEdit(discipline)}
-                          className="p-1 hover:bg-muted rounded transition-colors"
-                          title="Editar"
-                        >
-                          <Edit2 className="h-3 w-3 text-muted-foreground" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(discipline.id)}
-                          className="p-1 hover:bg-muted rounded transition-colors"
-                          title="Excluir"
-                        >
-                          <Trash2 className="h-3 w-3 text-destructive" />
-                        </button>
-                      </div>
-                    </div>
-                    <div className="mt-1.5 sm:mt-2 flex items-center gap-2">
-                      <span className="flex items-center gap-1 rounded bg-destructive/20 px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs text-destructive">
-                        <Zap className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
-                        {getPenaltyLabel(discipline.penalty_type, discipline.penalty_value)}
-                      </span>
-                    </div>
-                  </div>
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    className="shrink-0 text-xs sm:text-sm h-7 sm:h-9 px-2 sm:px-4"
-                    onClick={() => setTriggerConfirmId(discipline.id)}
-                  >
-                    Aplicar
-                  </Button>
-                </div>
-              </div>
-            ))}
-
-            {triggeredDisciplines.length > 0 && (
-              <div className="border-t pt-2 sm:pt-3">
-                <p className="mb-1.5 sm:mb-2 text-xs font-medium text-muted-foreground">Historico</p>
-                <div className="space-y-1.5 sm:space-y-2">
-                  {triggeredDisciplines.slice(0, 3).map((discipline) => (
-                    <div 
-                      key={discipline.id}
-                      className="flex items-center gap-1.5 sm:gap-2 rounded-lg bg-secondary/50 p-1.5 sm:p-2 opacity-60"
-                    >
-                      <AlertTriangle className="h-3 w-3 sm:h-4 sm:w-4 text-destructive flex-shrink-0" />
-                      <span className="flex-1 text-xs sm:text-sm truncate">{discipline.name}</span>
-                      <span className="flex items-center gap-0.5 sm:gap-1 text-[10px] sm:text-xs text-muted-foreground flex-shrink-0">
-                        <Clock className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
-                        <span className="hidden sm:inline">{formatDate(discipline.triggered_at)}</span>
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              </>
             )}
-          </div>
+          </CardContent>
         )}
-      </CardContent>
+      </Card>
 
-      {/* Confirmation Dialog */}
+      {/* Create Dialog */}
+      <Dialog open={open} onOpenChange={(isOpen) => {
+        setOpen(isOpen)
+        if (!isOpen) resetForm()
+      }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Criar Disciplina</DialogTitle>
+            <DialogDescription>
+              Configure uma penalidade para manter a disciplina e o foco nos seus objetivos.
+            </DialogDescription>
+          </DialogHeader>
+          {formContent(false)}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Dialog */}
+      <Dialog open={editOpen} onOpenChange={(isOpen) => {
+        setEditOpen(isOpen)
+        if (!isOpen) resetForm()
+      }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Disciplina</DialogTitle>
+            <DialogDescription>
+              Altere os detalhes da sua disciplina.
+            </DialogDescription>
+          </DialogHeader>
+          {formContent(true)}
+        </DialogContent>
+      </Dialog>
+
+      {/* Trigger Confirmation Dialog */}
       <AlertDialog open={!!triggerConfirmId} onOpenChange={(isOpen) => {
         if (!isOpen) setTriggerConfirmId(null)
       }}>
-        <AlertDialogContent className="max-w-[90vw] sm:max-w-md">
+        <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-base sm:text-lg">Aplicar Disciplina?</AlertDialogTitle>
-            <AlertDialogDescription className="text-xs sm:text-sm pt-2">
+            <AlertDialogTitle>Aplicar Penalidade?</AlertDialogTitle>
+            <AlertDialogDescription>
               {triggerConfirmId && activeDisciplines.find(d => d.id === triggerConfirmId) && (
                 <>
                   Tem certeza que deseja aplicar a penalidade <strong>{activeDisciplines.find(d => d.id === triggerConfirmId)?.name}</strong>?
@@ -432,8 +372,6 @@ export function DisciplinePanel({ disciplines, onCreateDiscipline, onUpdateDisci
           </div>
         </AlertDialogContent>
       </AlertDialog>
-        </>
-      )}
-    </Card>
+    </>
   )
 }
