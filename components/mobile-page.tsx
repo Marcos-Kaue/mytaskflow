@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Habit, HabitCompletion, UserStats, Reward, Discipline } from '@/lib/types'
-import { Trophy, Flame, Target, Zap, Plus, Check, Calendar, Gift, AlertTriangle, TrendingUp } from 'lucide-react'
+import { Trophy, Flame, Target, Zap, Plus, Check, Calendar, Gift, AlertTriangle, TrendingUp, Trash2, Edit2 } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -244,6 +244,18 @@ export function MobilePage({
                   <CardTitle className="text-sm font-medium flex items-center gap-2">
                     <span className="text-lg">{habit.icon === 'exercise' ? '💪' : '📚'}</span>
                     <span className="flex-1">{habit.name}</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        if (confirm(`Deseja deletar o hábito "${habit.name}"?`)) {
+                          onDeleteHabit(habit.id)
+                        }
+                      }}
+                      className="h-7 w-7 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-2">
