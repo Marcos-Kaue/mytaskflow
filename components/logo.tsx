@@ -1,78 +1,108 @@
 interface LogoProps {
   className?: string
   size?: number
+  variant?: 'icon' | 'full'
 }
 
-export function Logo({ className = "", size = 32 }: LogoProps) {
+export function Logo({ className = "", size = 32, variant = 'icon' }: LogoProps) {
+  if (variant === 'full') {
+    return (
+      <div className="flex items-center gap-2">
+        <LogoIcon size={size} className={className} />
+        <span className="font-bold text-lg bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
+          MyTaskFlow
+        </span>
+      </div>
+    )
+  }
+
+  return <LogoIcon size={size} className={className} />
+}
+
+function LogoIcon({ className = "", size = 32 }: Omit<LogoProps, 'variant'>) {
   return (
     <svg
       width={size}
       height={size}
-      viewBox="0 0 100 100"
+      viewBox="0 0 120 120"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
     >
-      {/* Círculo de fundo com gradiente */}
+      {/* Gradientes */}
       <defs>
-        <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="currentColor" stopOpacity="1" />
-          <stop offset="100%" stopColor="currentColor" stopOpacity="0.7" />
+        {/* Gradiente roxo para laranja */}
+        <linearGradient id="purpleOrange" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#7C3AED" />
+          <stop offset="100%" stopColor="#F97316" />
+        </linearGradient>
+        
+        {/* Gradiente laranja para roxo */}
+        <linearGradient id="orangePurple" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#F97316" />
+          <stop offset="100%" stopColor="#7C3AED" />
         </linearGradient>
       </defs>
       
-      {/* Círculo externo */}
+      {/* Círculo de fundo com gradiente roxo-laranja */}
       <circle
-        cx="50"
-        cy="50"
-        r="45"
-        stroke="url(#logoGradient)"
-        strokeWidth="3"
+        cx="60"
+        cy="60"
+        r="55"
+        fill="url(#purpleOrange)"
+        opacity="0.15"
+      />
+      
+      {/* Círculo de borda com gradiente */}
+      <circle
+        cx="60"
+        cy="60"
+        r="50"
+        stroke="url(#orangePurple)"
+        strokeWidth="2"
         fill="none"
       />
       
-      {/* Checkmark estilizado formando um "T" */}
+      {/* Checkmark principal - roxo */}
       <path
-        d="M 30 50 L 45 65 L 70 30"
-        stroke="currentColor"
-        strokeWidth="6"
+        d="M 35 62 L 52 78 L 85 38"
+        stroke="#7C3AED"
+        strokeWidth="8"
         strokeLinecap="round"
         strokeLinejoin="round"
         fill="none"
       />
       
-      {/* Linha vertical do "T" (Task) */}
-      <line
-        x1="50"
-        y1="30"
-        x2="50"
-        y2="20"
-        stroke="currentColor"
-        strokeWidth="6"
+      {/* Checkmark destaque - laranja */}
+      <path
+        d="M 35 62 L 52 78 L 85 38"
+        stroke="#F97316"
+        strokeWidth="4"
         strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+        opacity="0.7"
       />
       
-      {/* Pequenos círculos representando progresso */}
-      <circle cx="25" cy="75" r="3" fill="currentColor" opacity="0.6" />
-      <circle cx="40" cy="80" r="3" fill="currentColor" opacity="0.8" />
-      <circle cx="60" cy="80" r="3" fill="currentColor" opacity="0.9" />
-      <circle cx="75" cy="75" r="3" fill="currentColor" />
+      {/* Ponto de destaque no canto superior direito (representa gamificação) */}
+      <circle
+        cx="95"
+        cy="35"
+        r="5"
+        fill="#F97316"
+      />
+      
+      {/* Pequena linha decorativa */}
+      <line
+        x1="95"
+        y1="42"
+        x2="95"
+        y2="48"
+        stroke="#F97316"
+        strokeWidth="2"
+        strokeLinecap="round"
+        opacity="0.6"
+      />
     </svg>
-  )
-}
-
-interface LogoTextProps {
-  className?: string
-}
-
-export function LogoText({ className = "" }: LogoTextProps) {
-  return (
-    <div className={`flex items-center gap-2 ${className}`}>
-      <Logo size={40} />
-      <div className="flex flex-col leading-tight">
-        <span className="text-xl font-bold tracking-tight">MyTaskFlow</span>
-        <span className="text-xs text-muted-foreground tracking-wide">Hábitos & Progresso</span>
-      </div>
-    </div>
   )
 }

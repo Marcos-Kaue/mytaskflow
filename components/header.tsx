@@ -1,7 +1,8 @@
 'use client'
 
-import { Trophy, Flame, Star, Target } from 'lucide-react'
+import { Trophy, Flame, Star } from 'lucide-react'
 import { UserStats } from '@/lib/types'
+import { Logo } from './logo'
 
 interface HeaderProps {
   stats: UserStats | null
@@ -12,12 +13,10 @@ export function Header({ stats }: HeaderProps) {
     <header className="sticky top-0 z-50 border-b border-border bg-card/80 backdrop-blur-sm overflow-hidden">
       <div className="mx-auto max-w-5xl flex items-center justify-between px-3 py-3 sm:px-4 sm:py-4 gap-2 sm:gap-4">
         <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-          <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground flex-shrink-0">
-            <Target className="h-4 w-4 sm:h-5 sm:w-5" />
-          </div>
+          <Logo size={40} className="flex-shrink-0" />
           <div className="hidden sm:block">
-            <h1 className="text-lg sm:text-xl font-bold text-foreground">HabitFlow</h1>
-            <p className="text-xs text-muted-foreground">Construa habitos melhores</p>
+            <h1 className="text-lg sm:text-xl font-bold text-foreground">MyTaskFlow</h1>
+            <p className="text-xs text-muted-foreground">Rastreie seus hábitos</p>
           </div>
         </div>
         
