@@ -51,7 +51,7 @@ const colors = [
   { value: 'violet', label: 'Roxo', class: 'bg-violet-500' },
 ]
 
-const HabitForm({ onSubmit, editingHabit, onClose }: HabitFormProps) {
+export function HabitForm({ onSubmit, editingHabit, onClose }: HabitFormProps) {
   const [open, setOpen] = useState(!!editingHabit)
   const [name, setName] = useState(editingHabit?.name || '')
   const [description, setDescription] = useState(editingHabit?.description || '')
@@ -90,6 +90,19 @@ const HabitForm({ onSubmit, editingHabit, onClose }: HabitFormProps) {
     setFrequency('daily')
     setTargetCount(1)
     setHasUnsavedChanges(false)
+  }
+
+  const handleOpenChange = (newOpen: boolean) => {
+    if (!newOpen && hasUnsavedChanges) {
+      if (!confirm('Tem alterações não salvas. Deseja sair?')) {
+        return
+      }
+    }
+    setOpen(newOpen)
+    if (!newOpen) {
+      resetForm()
+      onClose?.()
+    }
   }
 
   const content = (
