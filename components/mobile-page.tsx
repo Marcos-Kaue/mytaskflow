@@ -820,6 +820,7 @@ export function MobilePage({
               <Label htmlFor="penalty-type">Tipo de Penalidade</Label>
               <select
                 id="penalty-type"
+                aria-label="Tipo de penalidade"
                 value={disciplinePenaltyType}
                 onChange={(e) => setDisciplinePenaltyType(e.target.value as 'points' | 'streak_reset' | 'custom')}
                 className="w-full px-3 py-2 border rounded-lg text-sm"

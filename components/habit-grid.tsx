@@ -5,6 +5,7 @@ import { Plus, Check, Trash2, Edit2, ChevronLeft, ChevronRight, Calendar } from 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Habit, HabitCompletion } from '@/lib/types'
+import { cn } from '@/lib/utils'
 import {
   Dialog,
   DialogContent,
@@ -478,9 +479,8 @@ export function HabitGrid({
         {/* Mobile Table - Single Week */}
         <div className="overflow-x-auto overflow-y-visible pb-4 -mx-3 px-3 max-w-full">
           <table 
-            className="border-collapse text-xs w-full min-w-max"
+            className={cn("border-collapse text-xs w-full min-w-max", mobileWeekDays.length > 6 ? "text-[9px]" : "text-[10px]")}
             role="table"
-            style={{ fontSize: mobileWeekDays.length > 6 ? '9px' : '10px' }}
           >
             <thead>
               <tr>
