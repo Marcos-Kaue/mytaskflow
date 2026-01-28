@@ -667,10 +667,10 @@ export function MobilePage({
                 <span className="text-xs text-muted-foreground">Taxa de Sucesso</span>
                 <span className="font-bold text-primary">{monthlyProgress}%</span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+              <div className="w-full bg-gray-200 rounded-full h-2 mt-2 overflow-hidden">
                 <div 
                   className="bg-primary h-2 rounded-full transition-all" 
-                  style={{ width: `${monthlyProgress}%` }}
+                  style={{ width: `${Math.min(Math.max(monthlyProgress, 0), 100)}%` }}
                 />
               </div>
             </CardContent>
