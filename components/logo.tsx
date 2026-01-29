@@ -11,7 +11,7 @@ export function Logo({ className = "", size = 32, variant = 'icon' }: LogoProps)
     return (
       <div className="flex items-center gap-2">
         <Image
-          src="/icons8-tarefas-16.png"
+          src="/icons8-tarefas-96.png"
           alt="MyTaskFlow Logo"
           width={size}
           height={size}
@@ -26,7 +26,7 @@ export function Logo({ className = "", size = 32, variant = 'icon' }: LogoProps)
 
   return (
     <Image
-      src="/icons8-tarefas-16.png"
+      src="/icons8-tarefas-96.png"
       alt="MyTaskFlow Logo"
       width={size}
       height={size}

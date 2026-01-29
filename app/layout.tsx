@@ -13,8 +13,8 @@ export const metadata: Metadata = {
   description: 'Acompanhe seus hábitos diários, visualize seu progresso e conquiste recompensas',
   generator: 'MyTaskFlow',
   icons: {
-    icon: '/icons8-tarefas-16.png',
-    apple: '/icons8-tarefas-16.png',
+    icon: '/icons8-tarefas-96.png',
+    apple: '/icons8-tarefas-96.png',
   },
 }
 
