@@ -35,22 +35,22 @@ export function StatsCards({ stats, habits, completions }: StatsCardsProps) {
       label: 'Progresso Diario',
       value: `${percentageToday}%`,
       icon: Target,
-      color: 'text-accent-foreground',
-      bgColor: 'bg-accent/50',
+      color: 'text-primary',
+      bgColor: 'bg-primary/10',
     },
     {
       label: 'Total de Habitos',
       value: activeHabits.length.toString(),
       icon: Calendar,
-      color: 'text-chart-2',
-      bgColor: 'bg-chart-2/10',
+      color: 'text-primary',
+      bgColor: 'bg-primary/10',
     },
     {
       label: 'Total Completados',
       value: stats?.total_completions?.toString() || '0',
       icon: TrendingUp,
-      color: 'text-chart-4',
-      bgColor: 'bg-chart-4/10',
+      color: 'text-primary',
+      bgColor: 'bg-primary/10',
     },
   ]
 

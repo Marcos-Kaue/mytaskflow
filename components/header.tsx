@@ -21,8 +21,8 @@ export function Header({ stats }: HeaderProps) {
         </div>
         
         <div className="flex items-center gap-2 sm:gap-4 flex-wrap justify-end">
-          <div className="flex items-center gap-1 sm:gap-2 rounded-lg bg-accent/50 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm">
-            <Flame className="h-3 w-3 sm:h-4 sm:w-4 text-orange-500 flex-shrink-0" />
+          <div className="flex items-center gap-1 sm:gap-2 rounded-lg bg-primary/10 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm">
+            <Flame className="h-3 w-3 sm:h-4 sm:w-4 text-primary flex-shrink-0" />
             <span className="font-semibold text-foreground whitespace-nowrap">
               {stats?.current_streak || 0}
             </span>
@@ -35,8 +35,8 @@ export function Header({ stats }: HeaderProps) {
             </span>
           </div>
           
-          <div className="hidden md:flex items-center gap-1 sm:gap-2 rounded-lg bg-accent/50 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm">
-            <Trophy className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500 flex-shrink-0" />
+          <div className="hidden md:flex items-center gap-1 sm:gap-2 rounded-lg bg-primary/10 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm">
+            <Trophy className="h-3 w-3 sm:h-4 sm:w-4 text-primary flex-shrink-0" />
             <span className="font-semibold text-foreground whitespace-nowrap">
               {stats?.longest_streak || 0}
             </span>

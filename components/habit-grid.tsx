@@ -204,7 +204,7 @@ export function HabitGrid({
       </div>
       
       {/* Month Header with Navigation */}
-      <div className="bg-secondary py-2 sm:py-3">
+      <div className="bg-primary/10 py-2 sm:py-3 border border-primary/15 rounded-t-xl">
         <div className="flex items-center justify-between px-2 sm:px-4 gap-2">
           <button
             onClick={handlePreviousMonth}
@@ -401,7 +401,7 @@ export function HabitGrid({
                   <td 
                     key={day.dateStr}
                     className={`border border-border p-1 text-center font-medium ${
-                      stats.progress === 100 ? 'text-accent' : ''
+                      stats.progress === 100 ? 'text-primary' : ''
                     }`}
                   >
                     {stats.progress}%

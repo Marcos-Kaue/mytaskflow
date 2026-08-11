@@ -500,7 +500,7 @@ export function MobilePage({
                             isSelected && 'bg-primary text-primary-foreground shadow-md',
                             !isSelected && isToday && 'ring-2 ring-primary/60',
                             !isSelected && !isFuture && progress === 100 && 'bg-green-500/15 text-green-700',
-                            !isSelected && !isFuture && progress > 0 && progress < 100 && 'bg-accent/15 text-foreground',
+                            !isSelected && !isFuture && progress > 0 && progress < 100 && 'bg-primary/15 text-foreground',
                             !isSelected && (isFuture || progress === 0) && 'bg-muted/40 text-muted-foreground',
                           )}
                         >
@@ -514,7 +514,7 @@ export function MobilePage({
                                   : progress === 100
                                     ? 'bg-green-500'
                                     : progress > 0
-                                      ? 'bg-accent'
+                                      ? 'bg-primary'
                                       : 'bg-transparent',
                               )}
                             />

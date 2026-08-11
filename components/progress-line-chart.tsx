@@ -70,7 +70,7 @@ export function ProgressLineChart({ habits, completions }: ProgressLineChartProp
               <Line 
                 type="monotone" 
                 dataKey="progress" 
-                stroke="var(--accent)" 
+                stroke="var(--primary)" 
                 strokeWidth={2}
                 dot={false}
                 connectNulls={false}
