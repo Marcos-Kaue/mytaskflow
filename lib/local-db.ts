@@ -2,6 +2,7 @@ import {
   Discipline,
   Habit,
   HabitCompletion,
+  Reminder,
   Reward,
   UserStats,
 } from "@/lib/types";
@@ -15,6 +16,7 @@ export type LocalDatabase = {
   stats: UserStats | null;
   rewards: Reward[];
   disciplines: Discipline[];
+  reminders: Reminder[];
 };
 
 function emptyDb(): LocalDatabase {
@@ -33,6 +35,7 @@ function emptyDb(): LocalDatabase {
     },
     rewards: [],
     disciplines: [],
+    reminders: [],
   };
 }
 
@@ -54,6 +57,7 @@ export function loadLocalDb(): LocalDatabase {
       stats: parsed.stats ?? fallback.stats,
       rewards: parsed.rewards ?? [],
       disciplines: parsed.disciplines ?? [],
+      reminders: parsed.reminders ?? [],
     };
   } catch {
     return emptyDb();

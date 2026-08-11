@@ -14,10 +14,11 @@ export const metadata: Metadata = {
   generator: 'MyTaskFlow',
   icons: {
     icon: [
+      { url: '/mytaskflow-icon.svg', type: 'image/svg+xml' },
       { url: '/mytaskflow-icon.png', type: 'image/png' },
     ],
     apple: '/apple-touch-icon.png',
-    shortcut: '/mytaskflow-icon.png',
+    shortcut: '/mytaskflow-icon.svg',
   },
 }
 

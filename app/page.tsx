@@ -11,27 +11,35 @@ import { DisciplinePanel } from '@/components/discipline-panel'
 import { MobilePage } from '@/components/mobile-page'
 import { Logo } from '@/components/logo'
 import { StorageBanner } from '@/components/storage-banner'
-import { Habit, HabitCompletion, UserStats, Reward, Discipline } from '@/lib/types'
-import { Flame, Target, Zap } from 'lucide-react'
+import { RemindersPanel } from '@/components/reminders-panel'
+import { Button } from '@/components/ui/button'
+import { Habit, HabitCompletion, UserStats, Reward, Discipline, Reminder } from '@/lib/types'
+import { Flame, RotateCcw, Target, Zap } from 'lucide-react'
 import { useIsMobile } from '@/hooks/use-mobile'
 import {
   claimReward,
+  completeReminder,
   createDiscipline,
   createHabit,
+  createReminder,
   createReward,
   deleteCompletions,
   deleteDiscipline,
   deleteHabit,
+  deleteReminder,
   deleteReward,
   ensureUserStats,
   fetchCompletions,
   fetchDisciplines,
   fetchHabits,
+  fetchReminders,
   fetchRewards,
   fetchStats,
   getBackendStatus,
   insertCompletion,
+  resetPoints,
   triggerDiscipline,
+  uncompleteReminder,
   updateDiscipline,
   updateHabit,
   updateReward,
@@ -53,6 +61,7 @@ export default function HomePage() {
   const { data: stats } = useSWR<UserStats | null>('stats', fetchStats)
   const { data: rewards = [] } = useSWR<Reward[]>('rewards', fetchRewards)
   const { data: disciplines = [] } = useSWR<Discipline[]>('disciplines', fetchDisciplines)
+  const { data: reminders = [] } = useSWR<Reminder[]>('reminders', fetchReminders)
 
   const backendStatus = getBackendStatus()
 
@@ -286,6 +295,62 @@ export default function HomePage() {
     }
   }
 
+  const handleResetPoints = async () => {
+    if (!confirm('Zerar a pontuação e a sequência atuais? Hábitos e histórico continuam.')) {
+      return
+    }
+    try {
+      await resetPoints()
+      toast({ title: 'Pontuação zerada!' })
+      mutate('stats')
+    } catch {
+      toast({ title: 'Erro ao zerar pontuação', variant: 'destructive' })
+    }
+  }
+
+  const handleCreateReminder = async (reminder: Partial<Reminder>) => {
+    try {
+      await createReminder(reminder)
+      toast({ title: 'Lembrete criado!' })
+      mutate('reminders')
+    } catch (error) {
+      toast({
+        title: 'Erro ao criar lembrete',
+        description: error instanceof Error ? error.message : undefined,
+        variant: 'destructive',
+      })
+    }
+  }
+
+  const handleCompleteReminder = async (id: string) => {
+    try {
+      await completeReminder(id)
+      toast({ title: 'Lembrete concluído!' })
+      mutate('reminders')
+    } catch {
+      toast({ title: 'Erro ao concluir lembrete', variant: 'destructive' })
+    }
+  }
+
+  const handleUncompleteReminder = async (id: string) => {
+    try {
+      await uncompleteReminder(id)
+      mutate('reminders')
+    } catch {
+      toast({ title: 'Erro ao reabrir lembrete', variant: 'destructive' })
+    }
+  }
+
+  const handleDeleteReminder = async (id: string) => {
+    try {
+      await deleteReminder(id)
+      toast({ title: 'Lembrete apagado' })
+      mutate('reminders')
+    } catch {
+      toast({ title: 'Erro ao apagar lembrete', variant: 'destructive' })
+    }
+  }
+
   // Calculate monthly progress for the selected month
   const monthlyProgress = (() => {
     if (habits.length === 0) return 0
@@ -309,6 +374,7 @@ export default function HomePage() {
           stats={stats || null}
           rewards={rewards}
           disciplines={disciplines}
+          reminders={reminders}
           selectedYear={selectedYear}
           selectedMonth={selectedMonth}
           onToggleHabit={handleToggleHabit}
@@ -328,6 +394,11 @@ export default function HomePage() {
           onUpdateDiscipline={handleUpdateDiscipline}
           onDeleteDiscipline={handleDeleteDiscipline}
           onTriggerDiscipline={handleTriggerDiscipline}
+          onResetPoints={handleResetPoints}
+          onCreateReminder={handleCreateReminder}
+          onCompleteReminder={handleCompleteReminder}
+          onUncompleteReminder={handleUncompleteReminder}
+          onDeleteReminder={handleDeleteReminder}
         />
       </div>
     )
@@ -338,51 +409,55 @@ export default function HomePage() {
     <div className="w-full overflow-x-hidden">
     <div className="min-h-screen bg-background flex flex-col">
       <StorageBanner status={backendStatus} />
-      {/* Header Banner com Gradiente Roxo + Laranja */}
-      <header className="relative bg-gradient-to-r from-primary via-purple-700 to-accent text-primary-foreground py-4 sm:py-6 md:py-8 w-full overflow-hidden">
-        {/* Background decorativo */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 left-0 w-96 h-96 bg-accent rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
-          <div className="absolute bottom-0 right-0 w-96 h-96 bg-primary rounded-full blur-3xl translate-x-1/2 translate-y-1/2"></div>
-        </div>
-        
-        <div className="mx-auto max-w-5xl text-center px-3 sm:px-4 relative z-10">
-          <div className="flex items-center justify-center mb-2 sm:mb-3">
-            <Logo size={40} className="sm:w-12 sm:h-12 drop-shadow-lg" />
+      <header className="sticky top-0 z-40 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg">
+        <div className="mx-auto max-w-5xl px-3 sm:px-4 py-4 sm:py-5">
+          <div className="flex items-center justify-center gap-3 mb-3">
+            <Logo size={44} className="drop-shadow-lg" />
+            <div className="text-left">
+              <p className="text-base sm:text-lg font-bold tracking-wide">MyTaskFlow</p>
+              <p className="text-xs sm:text-sm opacity-90">
+                Organize seus hábitos e conquiste seus objetivos
+              </p>
+            </div>
           </div>
-          <p className="text-xs sm:text-sm md:text-base font-semibold mb-1 tracking-wide drop-shadow">MyTaskFlow</p>
-          <h1 className="text-sm sm:text-base md:text-lg font-normal text-balance px-2 opacity-95 drop-shadow">
-            Organize seus hábitos e conquiste seus objetivos
-          </h1>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+            <div className="bg-white/10 rounded-lg p-2 flex items-center gap-1.5">
+              <Zap className="h-3.5 w-3.5 flex-shrink-0" />
+              <div>
+                <div className="font-bold text-sm">{stats?.total_points || 0}</div>
+                <div className="text-[10px] opacity-80">Pontos</div>
+              </div>
+            </div>
+            <div className="bg-white/10 rounded-lg p-2 flex items-center gap-1.5">
+              <Flame className="h-3.5 w-3.5 flex-shrink-0" />
+              <div>
+                <div className="font-bold text-sm">{stats?.current_streak || 0}</div>
+                <div className="text-[10px] opacity-80">Sequência</div>
+              </div>
+            </div>
+            <div className="bg-white/10 rounded-lg p-2 flex items-center gap-1.5">
+              <Target className="h-3.5 w-3.5 flex-shrink-0" />
+              <div>
+                <div className="font-bold text-sm">{monthlyProgress}%</div>
+                <div className="text-[10px] opacity-80">Mês</div>
+              </div>
+            </div>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handleResetPoints}
+              className="h-auto py-2 gap-1.5 text-xs"
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
+              Zerar pontuação
+            </Button>
+          </div>
         </div>
       </header>
       
-      {/* Stats Bar com Gradiente */}
-      <div className="border-b border-border bg-gradient-to-r from-primary/5 via-transparent to-accent/5 w-full">
-        <div className="mx-auto max-w-5xl px-3 py-2 sm:px-4 sm:py-3 w-full">
-          <div className="grid grid-cols-3 gap-2 sm:gap-3 md:flex md:gap-6 text-xs sm:text-sm">
-            <div className="flex items-center gap-1 sm:gap-2 px-2 py-1 rounded-lg bg-accent/10">
-              <Zap className="h-3 w-3 sm:h-4 sm:w-4 text-accent flex-shrink-0" />
-              <span className="font-medium text-accent">{stats?.total_points || 0}</span>
-              <span className="text-muted-foreground hidden md:inline">pontos</span>
-            </div>
-            <div className="flex items-center gap-1 sm:gap-2 px-2 py-1 rounded-lg bg-orange-500/10">
-              <Flame className="h-3 w-3 sm:h-4 sm:w-4 text-orange-500 flex-shrink-0" />
-              <span className="font-medium text-orange-500">{stats?.current_streak || 0}</span>
-              <span className="text-muted-foreground hidden md:inline">sequencia</span>
-            </div>
-            <div className="flex items-center gap-1 sm:gap-2 px-2 py-1 rounded-lg bg-primary/10">
-              <Target className="h-3 w-3 sm:h-4 sm:w-4 text-primary flex-shrink-0" />
-              <span className="font-medium text-primary">{monthlyProgress}%</span>
-              <span className="text-muted-foreground hidden md:inline">mes</span>
-            </div>
-          </div>
-        </div>
-      </div>
-      
       <main className="mx-auto w-full max-w-5xl px-3 py-3 sm:px-4 sm:py-4 md:py-6 flex-1">
         <div className="space-y-3 sm:space-y-4 md:space-y-6">
-          {/* Habit Grid + Side Analysis */}
           <div className="grid gap-3 sm:gap-4 lg:gap-6 lg:grid-cols-[2fr,1.1fr] items-start">
             <HabitGrid
               habits={habits}
@@ -396,7 +471,6 @@ export default function HomePage() {
               onMonthChange={(year, month) => {
                 setSelectedYear(year)
                 setSelectedMonth(month)
-                // Atualizar dados do novo mês
                 mutate(`completions-${year}-${month}`)
               }}
             />
@@ -404,10 +478,16 @@ export default function HomePage() {
             <HabitAnalysisTable habits={habits} completions={completions} />
           </div>
 
-          {/* Progress Chart */}
           <ProgressLineChart habits={habits} completions={completions} />
+
+          <RemindersPanel
+            reminders={reminders}
+            onCreateReminder={handleCreateReminder}
+            onCompleteReminder={handleCompleteReminder}
+            onUncompleteReminder={handleUncompleteReminder}
+            onDeleteReminder={handleDeleteReminder}
+          />
           
-          {/* Rewards and Discipline */}
           <div className="grid gap-3 sm:gap-4 md:gap-6 md:grid-cols-2">
             <RewardsPanel
               rewards={rewards}

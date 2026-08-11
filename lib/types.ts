@@ -54,6 +54,16 @@ export interface Discipline {
   created_at: string
 }
 
+export interface Reminder {
+  id: string
+  user_id: string
+  title: string
+  notes: string | null
+  is_completed: boolean
+  completed_at: string | null
+  created_at: string
+}
+
 export interface UserStats {
   id: string
   user_id: string

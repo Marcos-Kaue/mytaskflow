@@ -2,6 +2,7 @@ import {
   Discipline,
   Habit,
   HabitCompletion,
+  Reminder,
   Reward,
   UserStats,
 } from "@/lib/types";
@@ -622,6 +623,128 @@ export async function triggerDiscipline(disciplineId: string): Promise<void> {
           ? { ...item, triggered_at: new Date().toISOString() }
           : item,
       );
+      saveLocalDb(db);
+    },
+  );
+}
+
+export async function resetPoints(): Promise<void> {
+  await updateStats({
+    total_points: 0,
+    current_streak: 0,
+  });
+}
+
+export async function fetchReminders(): Promise<Reminder[]> {
+  return withBackend(
+    async () => {
+      const supabase = createBrowserClient();
+      const { data, error } = await supabase
+        .from("reminders")
+        .select("*")
+        .eq("user_id", USER_ID)
+        .order("created_at", { ascending: false });
+      throwIf(error);
+      return data || [];
+    },
+    () => loadLocalDb().reminders,
+  );
+}
+
+export async function createReminder(reminder: Partial<Reminder>): Promise<void> {
+  const payload = {
+    title: reminder.title,
+    notes: reminder.notes ?? null,
+    is_completed: false,
+    completed_at: null,
+    user_id: USER_ID,
+  };
+
+  await withBackend(
+    async () => {
+      const supabase = createBrowserClient();
+      const { error } = await supabase.from("reminders").insert(payload);
+      throwIf(error);
+    },
+    () => {
+      const db = loadLocalDb();
+      db.reminders.unshift({
+        id: createId(),
+        created_at: new Date().toISOString(),
+        ...payload,
+      } as Reminder);
+      saveLocalDb(db);
+    },
+  );
+}
+
+export async function completeReminder(reminderId: string): Promise<void> {
+  await withBackend(
+    async () => {
+      const supabase = createBrowserClient();
+      const { error } = await supabase
+        .from("reminders")
+        .update({
+          is_completed: true,
+          completed_at: new Date().toISOString(),
+        })
+        .eq("id", reminderId);
+      throwIf(error);
+    },
+    () => {
+      const db = loadLocalDb();
+      db.reminders = db.reminders.map((item) =>
+        item.id === reminderId
+          ? {
+              ...item,
+              is_completed: true,
+              completed_at: new Date().toISOString(),
+            }
+          : item,
+      );
+      saveLocalDb(db);
+    },
+  );
+}
+
+export async function uncompleteReminder(reminderId: string): Promise<void> {
+  await withBackend(
+    async () => {
+      const supabase = createBrowserClient();
+      const { error } = await supabase
+        .from("reminders")
+        .update({
+          is_completed: false,
+          completed_at: null,
+        })
+        .eq("id", reminderId);
+      throwIf(error);
+    },
+    () => {
+      const db = loadLocalDb();
+      db.reminders = db.reminders.map((item) =>
+        item.id === reminderId
+          ? { ...item, is_completed: false, completed_at: null }
+          : item,
+      );
+      saveLocalDb(db);
+    },
+  );
+}
+
+export async function deleteReminder(reminderId: string): Promise<void> {
+  await withBackend(
+    async () => {
+      const supabase = createBrowserClient();
+      const { error } = await supabase
+        .from("reminders")
+        .delete()
+        .eq("id", reminderId);
+      throwIf(error);
+    },
+    () => {
+      const db = loadLocalDb();
+      db.reminders = db.reminders.filter((item) => item.id !== reminderId);
       saveLocalDb(db);
     },
   );

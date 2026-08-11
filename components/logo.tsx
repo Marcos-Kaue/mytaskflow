@@ -6,9 +6,9 @@ interface LogoProps {
   variant?: 'icon' | 'full'
 }
 
-const LOGO_SRC = '/mytaskflow-icon.png'
+const LOGO_SRC = '/mytaskflow-icon.svg'
 
-export function Logo({ className = "", size = 32, variant = 'icon' }: LogoProps) {
+export function Logo({ className = '', size = 32, variant = 'icon' }: LogoProps) {
   if (variant === 'full') {
     return (
       <div className="flex items-center gap-2">
@@ -20,7 +20,7 @@ export function Logo({ className = "", size = 32, variant = 'icon' }: LogoProps)
           className={`rounded-xl ${className}`}
           priority
         />
-        <span className="font-bold text-lg bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
+        <span className="font-bold text-lg text-primary">
           MyTaskFlow
         </span>
       </div>

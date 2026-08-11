@@ -1,14 +1,16 @@
 'use client'
 
 import { useState } from 'react'
-import { Habit, HabitCompletion, UserStats, Reward, Discipline } from '@/lib/types'
-import { Trophy, Flame, Target, Zap, Plus, Check, Calendar, Gift, AlertTriangle, TrendingUp, Trash2, Edit2, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Habit, HabitCompletion, UserStats, Reward, Discipline, Reminder } from '@/lib/types'
+import { Trophy, Flame, Target, Zap, Plus, Check, Calendar, Gift, AlertTriangle, TrendingUp, Trash2, Edit2, ChevronLeft, ChevronRight, Bell, RotateCcw } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Logo } from '@/components/logo'
+import { RemindersPanel } from '@/components/reminders-panel'
 import { 
   Dialog, 
   DialogContent, 
@@ -42,6 +44,7 @@ interface MobilePageProps {
   stats: UserStats | null
   rewards: Reward[]
   disciplines: Discipline[]
+  reminders: Reminder[]
   selectedYear: number
   selectedMonth: number
   onToggleHabit: (habitId: string, date: string, shouldComplete: boolean) => Promise<void>
@@ -57,6 +60,11 @@ interface MobilePageProps {
   onUpdateDiscipline: (id: string, discipline: Partial<Discipline>) => void
   onDeleteDiscipline: (id: string) => void
   onTriggerDiscipline: (id: string) => void
+  onResetPoints: () => void
+  onCreateReminder: (reminder: Partial<Reminder>) => void
+  onCompleteReminder: (id: string) => void
+  onUncompleteReminder: (id: string) => void
+  onDeleteReminder: (id: string) => void
 }
 
 const MONTHS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
@@ -84,6 +92,7 @@ export function MobilePage({
   stats,
   rewards,
   disciplines,
+  reminders,
   selectedYear,
   selectedMonth,
   onToggleHabit,
@@ -98,6 +107,11 @@ export function MobilePage({
   onUpdateDiscipline,
   onDeleteDiscipline,
   onTriggerDiscipline,
+  onResetPoints,
+  onCreateReminder,
+  onCompleteReminder,
+  onUncompleteReminder,
+  onDeleteReminder,
 }: MobilePageProps) {
   const [activeTab, setActiveTab] = useState('habits')
   const [showNewHabitForm, setShowNewHabitForm] = useState(false)
@@ -336,11 +350,25 @@ export function MobilePage({
       {/* Compact Header */}
       <header className="sticky top-0 z-40 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg">
         <div className="px-4 py-3">
-          <div className="flex items-center justify-between mb-3">
-            <h1 className="text-lg font-bold">MyTaskFlow</h1>
-            <Badge variant="secondary" className="text-xs">
-              {MONTHS[selectedMonth]} {selectedYear}
-            </Badge>
+          <div className="flex items-center justify-between mb-3 gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <Logo size={32} />
+              <h1 className="text-lg font-bold truncate">MyTaskFlow</h1>
+            </div>
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary" className="text-xs">
+                {MONTHS[selectedMonth]} {selectedYear}
+              </Badge>
+              <Button
+                size="sm"
+                variant="secondary"
+                className="h-8 px-2 gap-1 text-[11px]"
+                onClick={onResetPoints}
+              >
+                <RotateCcw className="h-3 w-3" />
+                Zerar
+              </Button>
+            </div>
           </div>
           
           {/* Stats Row */}
@@ -372,20 +400,24 @@ export function MobilePage({
 
       {/* Main Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="w-full sticky top-[120px] z-30 rounded-none border-b bg-background h-12 grid grid-cols-4">
-          <TabsTrigger value="habits" className="text-xs flex flex-col gap-0.5 h-full">
+        <TabsList className="w-full sticky top-[132px] z-30 rounded-none border-b bg-background h-12 grid grid-cols-5">
+          <TabsTrigger value="habits" className="text-[10px] flex flex-col gap-0.5 h-full px-1">
             <Calendar className="h-4 w-4" />
             <span>Hábitos</span>
           </TabsTrigger>
-          <TabsTrigger value="rewards" className="text-xs flex flex-col gap-0.5 h-full">
+          <TabsTrigger value="reminders" className="text-[10px] flex flex-col gap-0.5 h-full px-1">
+            <Bell className="h-4 w-4" />
+            <span>Lembretes</span>
+          </TabsTrigger>
+          <TabsTrigger value="rewards" className="text-[10px] flex flex-col gap-0.5 h-full px-1">
             <Gift className="h-4 w-4" />
             <span>Prêmios</span>
           </TabsTrigger>
-          <TabsTrigger value="discipline" className="text-xs flex flex-col gap-0.5 h-full">
+          <TabsTrigger value="discipline" className="text-[10px] flex flex-col gap-0.5 h-full px-1">
             <AlertTriangle className="h-4 w-4" />
             <span>Disciplina</span>
           </TabsTrigger>
-          <TabsTrigger value="stats" className="text-xs flex flex-col gap-0.5 h-full">
+          <TabsTrigger value="stats" className="text-[10px] flex flex-col gap-0.5 h-full px-1">
             <TrendingUp className="h-4 w-4" />
             <span>Análise</span>
           </TabsTrigger>
@@ -608,6 +640,16 @@ export function MobilePage({
               </CardContent>
             </Card>
           )}
+        </TabsContent>
+
+        <TabsContent value="reminders" className="mt-0 p-3">
+          <RemindersPanel
+            reminders={reminders}
+            onCreateReminder={onCreateReminder}
+            onCompleteReminder={onCompleteReminder}
+            onUncompleteReminder={onUncompleteReminder}
+            onDeleteReminder={onDeleteReminder}
+          />
         </TabsContent>
 
         {/* Rewards Tab */}
