@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Habit, HabitCompletion, UserStats, Reward, Discipline } from '@/lib/types'
-import { Trophy, Flame, Target, Zap, Plus, Check, Calendar, Gift, AlertTriangle, TrendingUp, Trash2, Edit2 } from 'lucide-react'
+import { Trophy, Flame, Target, Zap, Plus, Check, Calendar, Gift, AlertTriangle, TrendingUp, Trash2, Edit2, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -60,12 +60,22 @@ interface MobilePageProps {
 }
 
 const MONTHS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
+const MONTHS_FULL = [
+  'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
+]
+const WEEKDAYS = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S']
 
 function formatLocalDate(date: Date): string {
   const year = date.getFullYear()
   const month = String(date.getMonth() + 1).padStart(2, '0')
   const day = String(date.getDate()).padStart(2, '0')
   return `${year}-${month}-${day}`
+}
+
+function parseLocalDate(dateStr: string): Date {
+  const [year, month, day] = dateStr.split('-').map(Number)
+  return new Date(year, month - 1, day)
 }
 
 export function MobilePage({
@@ -90,9 +100,10 @@ export function MobilePage({
   onTriggerDiscipline,
 }: MobilePageProps) {
   const [activeTab, setActiveTab] = useState('habits')
-  const [weekIndex, setWeekIndex] = useState(0)
   const [showNewHabitForm, setShowNewHabitForm] = useState(false)
   const [newHabitName, setNewHabitName] = useState('')
+  const [selectedDateStr, setSelectedDateStr] = useState(formatLocalDate(new Date()))
+  const [showCalendar, setShowCalendar] = useState(true)
   
   // Reward states
   const [rewardDialogOpen, setRewardDialogOpen] = useState(false)
@@ -214,38 +225,28 @@ export function MobilePage({
     return rewardIcons.find(i => i.value === iconValue)?.emoji || '🎁'
   }
 
-  // Get days for current month
-  const getDaysInMonth = () => {
+  // Get days for current month calendar
+  const getMonthCalendarDays = () => {
     const daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate()
-    const days: { date: number; dateStr: string; weekNum: number }[] = []
-    let weekNum = 1
-    
-    for (let i = 1; i <= daysInMonth; i++) {
-      const date = new Date(selectedYear, selectedMonth, i)
-      const weekday = date.getDay()
-      
-      if (weekday === 0 && i > 1) weekNum++
-      
-      days.push({
-        date: i,
+    const firstWeekday = new Date(selectedYear, selectedMonth, 1).getDay()
+    const cells: Array<{ date: number; dateStr: string } | null> = []
+
+    for (let i = 0; i < firstWeekday; i++) {
+      cells.push(null)
+    }
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(selectedYear, selectedMonth, day)
+      cells.push({
+        date: day,
         dateStr: formatLocalDate(date),
-        weekNum,
       })
     }
-    
-    return { days, totalWeeks: weekNum }
+
+    return cells
   }
 
-  const { days, totalWeeks } = getDaysInMonth()
-  
-  // Group days by week
-  const weekGroups: Record<number, typeof days> = {}
-  days.forEach(day => {
-    if (!weekGroups[day.weekNum]) weekGroups[day.weekNum] = []
-    weekGroups[day.weekNum].push(day)
-  })
-
-  const currentWeekDays = weekGroups[weekIndex + 1] || []
+  const calendarDays = getMonthCalendarDays()
 
   // Completion map
   const completionMap: Record<string, Set<string>> = {}
@@ -259,10 +260,56 @@ export function MobilePage({
     return completionMap[habitId]?.has(dateStr) || false
   }
 
+  const getDayProgress = (dateStr: string) => {
+    if (habits.length === 0) return 0
+    const done = habits.filter((habit) => isCompleted(habit.id, dateStr)).length
+    return Math.round((done / habits.length) * 100)
+  }
+
+  const goToPreviousMonth = () => {
+    const next = new Date(selectedYear, selectedMonth - 1, 1)
+    onMonthChange(next.getFullYear(), next.getMonth())
+    setSelectedDateStr(formatLocalDate(next))
+  }
+
+  const goToNextMonth = () => {
+    const next = new Date(selectedYear, selectedMonth + 1, 1)
+    onMonthChange(next.getFullYear(), next.getMonth())
+    setSelectedDateStr(formatLocalDate(next))
+  }
+
+  const goToToday = () => {
+    const now = new Date()
+    onMonthChange(now.getFullYear(), now.getMonth())
+    setSelectedDateStr(formatLocalDate(now))
+  }
+
+  const handleSelectDate = (dateStr: string) => {
+    const date = parseLocalDate(dateStr)
+    if (date.getFullYear() !== selectedYear || date.getMonth() !== selectedMonth) {
+      onMonthChange(date.getFullYear(), date.getMonth())
+    }
+    setSelectedDateStr(dateStr)
+  }
+
+  const selectedDateLabel = (() => {
+    const date = parseLocalDate(selectedDateStr)
+    return `${date.getDate()} de ${MONTHS_FULL[date.getMonth()]}`
+  })()
+
+  const selectedIsFuture = parseLocalDate(selectedDateStr) > today
+  const selectedCompletedCount = habits.filter((habit) =>
+    isCompleted(habit.id, selectedDateStr),
+  ).length
+
   // Calculate progress
   const monthlyProgress = (() => {
     if (habits.length === 0) return 0
-    const currentDay = today.getDate()
+    const isCurrentMonth =
+      selectedYear === today.getFullYear() && selectedMonth === today.getMonth()
+    const currentDay = isCurrentMonth
+      ? today.getDate()
+      : new Date(selectedYear, selectedMonth + 1, 0).getDate()
     const totalPossible = habits.length * currentDay
     const completed = completions.length
     return totalPossible > 0 ? Math.round((completed / totalPossible) * 100) : 0
@@ -346,97 +393,180 @@ export function MobilePage({
 
         {/* Habits Tab */}
         <TabsContent value="habits" className="mt-0 p-3 space-y-3">
-          {/* Week Navigation */}
           <Card className="border-primary/20">
-            <CardContent className="p-3">
-              <div className="flex items-center justify-between mb-2">
+            <CardContent className="p-3 space-y-3">
+              <div className="flex items-center justify-between gap-2">
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setWeekIndex(Math.max(0, weekIndex - 1))}
-                  disabled={weekIndex === 0}
-                  className="h-8 px-2"
+                  onClick={goToPreviousMonth}
+                  className="h-9 w-9 p-0"
+                  aria-label="Mês anterior"
                 >
-                  ← Anterior
+                  <ChevronLeft className="h-5 w-5" />
                 </Button>
-                <div className="text-xs font-medium">
-                  Semana {weekIndex + 1} de {totalWeeks}
+                <div className="text-center min-w-0">
+                  <div className="text-sm font-semibold truncate">
+                    {MONTHS_FULL[selectedMonth]} {selectedYear}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={goToToday}
+                    className="text-[11px] text-primary font-medium"
+                  >
+                    Ir para hoje
+                  </button>
                 </div>
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setWeekIndex(Math.min(totalWeeks - 1, weekIndex + 1))}
-                  disabled={weekIndex >= totalWeeks - 1}
-                  className="h-8 px-2"
+                  onClick={goToNextMonth}
+                  className="h-9 w-9 p-0"
+                  aria-label="Próximo mês"
                 >
-                  Próxima →
+                  <ChevronRight className="h-5 w-5" />
                 </Button>
               </div>
-              
-              {/* Days of Week */}
-              <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-medium mb-1">
-                {currentWeekDays.map(day => (
-                  <div key={day.date} className={cn(
-                    "py-0.5",
-                    day.dateStr === todayStr && "text-primary font-bold"
-                  )}>
-                    {day.date}
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
 
-          {/* Habits List */}
-          <div className="space-y-2">
-            {habits.map(habit => (
-              <Card key={habit.id} className="overflow-hidden">
-                <CardHeader className="p-3 pb-2 bg-gradient-to-r from-primary/5 to-transparent">
-                  <CardTitle className="text-sm font-medium flex items-center gap-2">
-                    <span className="text-lg">{habit.icon === 'exercise' ? '💪' : '📚'}</span>
-                    <span className="flex-1">{habit.name}</span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        if (confirm(`Deseja deletar o hábito "${habit.name}"?`)) {
-                          onDeleteHabit(habit.id)
-                        }
-                      }}
-                      className="h-7 w-7 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full gap-2"
+                onClick={() => setShowCalendar((value) => !value)}
+              >
+                <Calendar className="h-4 w-4" />
+                {showCalendar ? 'Ocultar calendário' : 'Ver calendário'}
+              </Button>
+
+              {showCalendar && (
+                <div className="space-y-2">
+                  <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-medium text-muted-foreground">
+                    {WEEKDAYS.map((day, index) => (
+                      <div key={`${day}-${index}`} className="py-1">
+                        {day}
+                      </div>
+                    ))}
+                  </div>
                   <div className="grid grid-cols-7 gap-1">
-                    {currentWeekDays.map(day => {
-                      const completed = isCompleted(habit.id, day.dateStr)
-                      const isFuture = new Date(day.dateStr) > today
-                      
+                    {calendarDays.map((day, index) => {
+                      if (!day) {
+                        return <div key={`empty-${index}`} className="aspect-square" />
+                      }
+
+                      const progress = getDayProgress(day.dateStr)
+                      const isSelected = day.dateStr === selectedDateStr
+                      const isToday = day.dateStr === todayStr
+                      const isFuture = parseLocalDate(day.dateStr) > today
+
                       return (
                         <button
-                          key={day.date}
-                          onClick={() => !isFuture && onToggleHabit(habit.id, day.dateStr, !completed)}
-                          disabled={isFuture}
+                          key={day.dateStr}
+                          type="button"
+                          onClick={() => handleSelectDate(day.dateStr)}
                           className={cn(
-                            "aspect-square rounded-lg flex items-center justify-center text-xs font-medium transition-all",
-                            completed && "bg-green-500 text-white shadow-sm",
-                            !completed && !isFuture && "bg-gray-100 hover:bg-gray-200 text-gray-600",
-                            isFuture && "bg-gray-50 text-gray-300 cursor-not-allowed",
-                            day.dateStr === todayStr && "ring-2 ring-primary ring-offset-1"
+                            'aspect-square rounded-xl text-xs font-semibold transition-all flex flex-col items-center justify-center gap-0.5',
+                            isSelected && 'bg-primary text-primary-foreground shadow-md',
+                            !isSelected && isToday && 'ring-2 ring-primary/60',
+                            !isSelected && !isFuture && progress === 100 && 'bg-green-500/15 text-green-700',
+                            !isSelected && !isFuture && progress > 0 && progress < 100 && 'bg-accent/15 text-foreground',
+                            !isSelected && (isFuture || progress === 0) && 'bg-muted/40 text-muted-foreground',
                           )}
                         >
-                          {completed && <Check className="h-3 w-3" />}
+                          <span>{day.date}</span>
+                          {!isFuture && habits.length > 0 && (
+                            <span
+                              className={cn(
+                                'h-1 w-1 rounded-full',
+                                isSelected
+                                  ? 'bg-primary-foreground'
+                                  : progress === 100
+                                    ? 'bg-green-500'
+                                    : progress > 0
+                                      ? 'bg-accent'
+                                      : 'bg-transparent',
+                              )}
+                            />
+                          )}
                         </button>
                       )
                     })}
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  <p className="text-[11px] text-muted-foreground text-center">
+                    Toque em um dia para ver e marcar os hábitos
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="border-primary/20">
+            <CardHeader className="p-3 pb-2">
+              <CardTitle className="text-sm flex items-center justify-between gap-2">
+                <span>{selectedDateLabel}</span>
+                <Badge variant="secondary" className="text-[10px]">
+                  {selectedCompletedCount}/{habits.length} feitos
+                </Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-3 pt-0 space-y-2">
+              {habits.length === 0 ? (
+                <p className="text-xs text-muted-foreground text-center py-4">
+                  Nenhum hábito ainda. Adicione o primeiro abaixo.
+                </p>
+              ) : (
+                habits.map((habit) => {
+                  const completed = isCompleted(habit.id, selectedDateStr)
+
+                  return (
+                    <div
+                      key={habit.id}
+                      className="flex items-center gap-2 rounded-xl border border-border/60 p-2"
+                    >
+                      <button
+                        type="button"
+                        disabled={selectedIsFuture}
+                        onClick={() =>
+                          !selectedIsFuture &&
+                          onToggleHabit(habit.id, selectedDateStr, !completed)
+                        }
+                        className={cn(
+                          'h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-all',
+                          completed && 'bg-green-500 text-white shadow-sm',
+                          !completed && !selectedIsFuture && 'bg-muted hover:bg-muted/80',
+                          selectedIsFuture && 'bg-muted/40 text-muted-foreground cursor-not-allowed',
+                        )}
+                        aria-label={`Marcar ${habit.name}`}
+                      >
+                        {completed ? <Check className="h-4 w-4" /> : null}
+                      </button>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium truncate">{habit.name}</div>
+                        <div className="text-[11px] text-muted-foreground">
+                          {selectedIsFuture
+                            ? 'Dia futuro'
+                            : completed
+                              ? 'Concluído'
+                              : 'Pendente'}
+                        </div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          if (confirm(`Deseja deletar o hábito "${habit.name}"?`)) {
+                            onDeleteHabit(habit.id)
+                          }
+                        }}
+                        className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  )
+                })
+              )}
+            </CardContent>
+          </Card>
 
           {/* Quick Add Habit */}
           {!showNewHabitForm ? (
