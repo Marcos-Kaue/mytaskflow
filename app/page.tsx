@@ -478,7 +478,7 @@ export default function HomePage() {
       <DateAlerts disciplines={disciplines} reminders={reminders} />
       <header className="sticky top-0 z-40 bg-gradient-to-br from-primary to-accent text-primary-foreground shadow-lg">
         <div className="mx-auto max-w-5xl px-3 sm:px-4 py-4 sm:py-5">
-          <div className="flex items-center justify-center gap-3 mb-3 relative">
+          <div className="flex items-center justify-center gap-3 mb-3">
             <Logo size={44} className="drop-shadow-lg" />
             <div className="text-left">
               <p className="text-base sm:text-lg font-bold tracking-wide">MyTaskFlow</p>
@@ -486,12 +486,9 @@ export default function HomePage() {
                 Organize seus hábitos e conquiste seus objetivos
               </p>
             </div>
-            <div className="absolute right-0 top-0">
-              <UserMenu />
-            </div>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+          <div className="grid grid-cols-3 gap-2 text-xs">
             <div className="bg-white/10 rounded-lg p-2 flex items-center gap-1.5">
               <Zap className="h-3.5 w-3.5 flex-shrink-0" />
               <div>
@@ -513,15 +510,6 @@ export default function HomePage() {
                 <div className="text-[10px] opacity-80">Mês</div>
               </div>
             </div>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={handleResetPoints}
-              className="h-auto py-2 gap-1.5 text-xs"
-            >
-              <RotateCcw className="h-3.5 w-3.5" />
-              Zerar pontuação
-            </Button>
           </div>
         </div>
       </header>
@@ -576,6 +564,24 @@ export default function HomePage() {
               onDeleteDiscipline={handleDeleteDiscipline}
               onTriggerDiscipline={handleTriggerDiscipline}
             />
+          </div>
+
+          <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+            <div>
+              <h3 className="text-sm font-semibold">Conta e pontuação</h3>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Opções no final da análise do sistema.
+              </p>
+            </div>
+            <UserMenu fullWidth />
+            <Button
+              variant="outline"
+              className="w-full h-10 gap-2"
+              onClick={handleResetPoints}
+            >
+              <RotateCcw className="h-4 w-4" />
+              Zerar pontuação
+            </Button>
           </div>
         </div>
       </main>

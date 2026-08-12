@@ -390,19 +390,9 @@ export function MobilePage({
                   <h1 className="text-lg font-bold truncate">MyTaskFlow</h1>
                 </div>
                 <div className="flex items-center gap-2">
-                  <UserMenu compact />
                   <Badge variant="secondary" className="text-xs">
                     {MONTHS[selectedMonth]} {selectedYear}
                   </Badge>
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    className="h-8 px-2 gap-1 text-[11px]"
-                    onClick={onResetPoints}
-                  >
-                    <RotateCcw className="h-3 w-3" />
-                    Zerar
-                  </Button>
                 </div>
               </div>
               
@@ -937,6 +927,23 @@ export function MobilePage({
                     <Badge variant="secondary" className="text-xs">{habit.count}</Badge>
                   </div>
                 ))}
+            </CardContent>
+          </Card>
+
+          <Card className="border-border/60">
+            <CardHeader className="p-3 pb-2">
+              <CardTitle className="text-sm">Conta e pontuação</CardTitle>
+            </CardHeader>
+            <CardContent className="p-3 pt-0 space-y-2">
+              <UserMenu fullWidth />
+              <Button
+                variant="outline"
+                className="w-full h-10 gap-2"
+                onClick={onResetPoints}
+              >
+                <RotateCcw className="h-4 w-4" />
+                Zerar pontuação
+              </Button>
             </CardContent>
           </Card>
         </TabsContent>
