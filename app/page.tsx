@@ -14,6 +14,7 @@ import { StorageBanner } from '@/components/storage-banner'
 import { DateAlerts } from '@/components/date-alerts'
 import { RemindersPanel } from '@/components/reminders-panel'
 import { UserMenu } from '@/components/user-menu'
+import { AccountSecurityPanel } from '@/components/account-security-panel'
 import { Button } from '@/components/ui/button'
 import { Habit, HabitCompletion, UserStats, Reward, Discipline, Reminder } from '@/lib/types'
 import { Flame, RotateCcw, Target, Zap } from 'lucide-react'
@@ -41,6 +42,7 @@ import {
   fulfillDiscipline,
   getBackendStatus,
   insertCompletion,
+  reorderHabits,
   resetPoints,
   triggerDiscipline,
   uncompleteReminder,
@@ -166,6 +168,16 @@ export default function HomePage() {
       mutate('habits')
     } catch {
       toast({ title: 'Erro ao atualizar habito', variant: 'destructive' })
+    }
+  }
+
+  const handleReorderHabits = async (orderedIds: string[]) => {
+    try {
+      await reorderHabits(orderedIds)
+      mutate('habits')
+    } catch {
+      toast({ title: 'Erro ao reordenar hábitos', variant: 'destructive' })
+      mutate('habits')
     }
   }
 
@@ -464,6 +476,7 @@ export default function HomePage() {
           onDeleteDiscipline={handleDeleteDiscipline}
           onTriggerDiscipline={handleTriggerDiscipline}
           onResetPoints={handleResetPoints}
+          onReorderHabits={handleReorderHabits}
           onCreateReminder={handleCreateReminder}
           onCompleteReminder={handleCompleteReminder}
           onUncompleteReminder={handleUncompleteReminder}
@@ -577,6 +590,7 @@ export default function HomePage() {
               </p>
             </div>
             <UserMenu fullWidth />
+            <AccountSecurityPanel />
             <Button
               variant="outline"
               className="w-full h-10 gap-2"

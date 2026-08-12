@@ -8,6 +8,7 @@ export interface Habit {
   frequency: 'daily' | 'weekly' | 'monthly'
   target_count: number
   counts_for_points: boolean
+  sort_order: number
   created_at: string
   is_active: boolean
 }

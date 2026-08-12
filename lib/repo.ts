@@ -10,6 +10,7 @@ import { LOCAL_USER_ID, isSupabaseConfigured } from "@/lib/supabase/config";
 import { createBrowserClient } from "@/lib/supabase/client";
 import {
   createId,
+  clearLocalDb,
   loadLocalDb,
   saveLocalDb,
   updateLocalStats,
@@ -185,12 +186,26 @@ export async function fetchHabits(): Promise<Habit[]> {
         .eq("is_active", true)
         .order("created_at", { ascending: true });
       throwIf(error);
-      return (data || []).map((item: Habit) => ({
-        ...item,
-        counts_for_points: item.counts_for_points !== false,
-      }));
+      return (data || [])
+        .map((item: Habit) => ({
+          ...item,
+          counts_for_points: item.counts_for_points !== false,
+          sort_order: item.sort_order ?? 0,
+        }))
+        .sort(
+          (a: Habit, b: Habit) =>
+            a.sort_order - b.sort_order ||
+            a.created_at.localeCompare(b.created_at),
+        );
     },
-    () => loadLocalDb(userId).habits.filter((habit) => habit.is_active),
+    () =>
+      loadLocalDb(userId)
+        .habits.filter((habit) => habit.is_active)
+        .sort(
+          (a, b) =>
+            (a.sort_order ?? 0) - (b.sort_order ?? 0) ||
+            a.created_at.localeCompare(b.created_at),
+        ),
   );
 }
 
@@ -323,26 +338,53 @@ export async function ensureUserStats(): Promise<void> {
 export async function createHabit(habit: Partial<Habit>): Promise<void> {
   const userId = await requireUserId();
 
-  const payload = {
-    name: habit.name,
-    description: habit.description ?? null,
-    icon: habit.icon || "target",
-    color: habit.color || "#10b981",
-    frequency: habit.frequency || "daily",
-    target_count: habit.target_count || 1,
-    counts_for_points: habit.counts_for_points !== false,
-    is_active: true,
-    user_id: userId,
-  };
-
   await withBackend(
     async () => {
       const supabase = createBrowserClient();
+      const { data, error: orderError } = await supabase
+        .from("habits")
+        .select("sort_order")
+        .eq("user_id", userId)
+        .order("sort_order", { ascending: false })
+        .limit(1);
+      throwIf(orderError);
+      const nextSortOrder =
+        ((data?.[0] as { sort_order?: number } | undefined)?.sort_order ?? -1) + 1;
+
+      const payload = {
+        name: habit.name,
+        description: habit.description ?? null,
+        icon: habit.icon || "target",
+        color: habit.color || "#10b981",
+        frequency: habit.frequency || "daily",
+        target_count: habit.target_count || 1,
+        counts_for_points: habit.counts_for_points !== false,
+        sort_order: habit.sort_order ?? nextSortOrder,
+        is_active: true,
+        user_id: userId,
+      };
+
       const { error } = await supabase.from("habits").insert(payload);
       throwIf(error);
     },
     () => {
       const db = loadLocalDb(userId);
+      const max = db.habits.reduce(
+        (acc, item) => Math.max(acc, item.sort_order ?? 0),
+        -1,
+      );
+      const payload = {
+        name: habit.name,
+        description: habit.description ?? null,
+        icon: habit.icon || "target",
+        color: habit.color || "#10b981",
+        frequency: habit.frequency || "daily",
+        target_count: habit.target_count || 1,
+        counts_for_points: habit.counts_for_points !== false,
+        sort_order: habit.sort_order ?? max + 1,
+        is_active: true,
+        user_id: userId,
+      };
       db.habits.push({
         id: createId(),
         created_at: new Date().toISOString(),
@@ -393,6 +435,70 @@ export async function updateHabit(habit: Partial<Habit>): Promise<void> {
       saveLocalDb(db, userId);
     },
   );
+}
+
+export async function reorderHabits(orderedIds: string[]): Promise<void> {
+  const userId = await requireUserId();
+  if (orderedIds.length === 0) return;
+
+  await withBackend(
+    async () => {
+      const supabase = createBrowserClient();
+      const updates = orderedIds.map((id, index) =>
+        supabase
+          .from("habits")
+          .update({ sort_order: index })
+          .eq("id", id)
+          .eq("user_id", userId),
+      );
+      const results = await Promise.all(updates);
+      results.forEach(({ error }) => throwIf(error));
+    },
+    () => {
+      const db = loadLocalDb(userId);
+      const orderMap = new Map(orderedIds.map((id, index) => [id, index]));
+      db.habits = db.habits.map((item) =>
+        orderMap.has(item.id)
+          ? { ...item, sort_order: orderMap.get(item.id)! }
+          : item,
+      );
+      saveLocalDb(db, userId);
+    },
+  );
+}
+
+export async function deleteOwnAccount(): Promise<{ authDeleted: boolean }> {
+  const userId = await requireUserId();
+
+  if (getBackendStatus().mode === "local" || !isSupabaseConfigured()) {
+    clearLocalDb(userId);
+    return { authDeleted: true };
+  }
+
+  const supabase = createBrowserClient();
+  const { error } = await supabase.rpc("delete_own_account");
+
+  if (!error) {
+    clearLocalDb(userId);
+    return { authDeleted: true };
+  }
+
+  const missingFn =
+    /function|could not find|schema cache/i.test(error.message || "");
+
+  await supabase.from("habit_completions").delete().eq("user_id", userId);
+  await supabase.from("rewards").delete().eq("user_id", userId);
+  await supabase.from("disciplines").delete().eq("user_id", userId);
+  await supabase.from("reminders").delete().eq("user_id", userId);
+  await supabase.from("habits").delete().eq("user_id", userId);
+  await supabase.from("user_stats").delete().eq("user_id", userId);
+  clearLocalDb(userId);
+
+  if (!missingFn) {
+    throw new Error(error.message);
+  }
+
+  return { authDeleted: false };
 }
 
 export async function deleteHabit(habitId: string): Promise<void> {

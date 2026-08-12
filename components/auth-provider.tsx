@@ -19,6 +19,8 @@ type AuthContextValue = {
   signIn: (email: string, password: string) => Promise<void>
   signUp: (email: string, password: string) => Promise<{ needsEmailConfirm: boolean }>
   signOut: () => Promise<void>
+  requestPasswordReset: (email: string) => Promise<void>
+  updatePassword: (password: string) => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -70,9 +72,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (error) throw error
   }, [])
 
+  const requestPasswordReset = useCallback(async (email: string) => {
+    const supabase = createBrowserClient()
+    const redirectTo = `${window.location.origin}/auth/update-password`
+    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo })
+    if (error) throw error
+  }, [])
+
+  const updatePassword = useCallback(async (password: string) => {
+    const supabase = createBrowserClient()
+    const { error } = await supabase.auth.updateUser({ password })
+    if (error) throw error
+  }, [])
+
   const value = useMemo(
-    () => ({ user, loading, authRequired, signIn, signUp, signOut }),
-    [user, loading, authRequired, signIn, signUp, signOut],
+    () => ({
+      user,
+      loading,
+      authRequired,
+      signIn,
+      signUp,
+      signOut,
+      requestPasswordReset,
+      updatePassword,
+    }),
+    [
+      user,
+      loading,
+      authRequired,
+      signIn,
+      signUp,
+      signOut,
+      requestPasswordReset,
+      updatePassword,
+    ],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

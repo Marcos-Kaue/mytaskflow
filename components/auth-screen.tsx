@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Logo } from '@/components/logo'
 import { Button } from '@/components/ui/button'
@@ -110,7 +111,17 @@ export function AuthScreen() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="auth-password">Senha</Label>
+              <div className="flex items-center justify-between gap-2">
+                <Label htmlFor="auth-password">Senha</Label>
+                {mode === 'login' && (
+                  <Link
+                    href="/auth/forgot"
+                    className="text-[11px] text-muted-foreground underline underline-offset-2"
+                  >
+                    Esqueci minha senha
+                  </Link>
+                )}
+              </div>
               <Input
                 id="auth-password"
                 type="password"

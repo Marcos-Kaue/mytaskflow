@@ -58,9 +58,10 @@ export function loadLocalDb(userId: string = LOCAL_USER_ID): LocalDatabase {
     const parsed = JSON.parse(raw) as Partial<LocalDatabase>;
     const fallback = emptyDb(userId);
     return {
-      habits: (parsed.habits ?? []).map((item) => ({
+      habits: (parsed.habits ?? []).map((item, index) => ({
         ...item,
         counts_for_points: item.counts_for_points !== false,
+        sort_order: item.sort_order ?? index,
       })),
       completions: parsed.completions ?? [],
       stats: parsed.stats ?? fallback.stats,
@@ -87,6 +88,14 @@ export function saveLocalDb(
 ): void {
   if (!canUseStorage()) return;
   localStorage.setItem(storageKey(userId), JSON.stringify(db));
+}
+
+export function clearLocalDb(userId: string = LOCAL_USER_ID): void {
+  if (!canUseStorage()) return;
+  localStorage.removeItem(storageKey(userId));
+  if (userId === LOCAL_USER_ID) {
+    localStorage.removeItem("mytaskflow-db-v1");
+  }
 }
 
 export function createId(): string {

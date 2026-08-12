@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Habit, HabitCompletion, UserStats, Reward, Discipline, Reminder } from '@/lib/types'
-import { Trophy, Flame, Target, Zap, Plus, Check, Calendar, Gift, AlertTriangle, TrendingUp, Trash2, Edit2, ChevronLeft, ChevronRight, Bell, RotateCcw } from 'lucide-react'
+import { Trophy, Flame, Target, Zap, Plus, Calendar, Gift, AlertTriangle, TrendingUp, Trash2, Edit2, ChevronLeft, ChevronRight, Bell, RotateCcw } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -13,6 +13,8 @@ import { Switch } from '@/components/ui/switch'
 import { Logo } from '@/components/logo'
 import { RemindersPanel } from '@/components/reminders-panel'
 import { UserMenu } from '@/components/user-menu'
+import { AccountSecurityPanel } from '@/components/account-security-panel'
+import { HabitSortableList } from '@/components/habit-sortable-list'
 import { 
   Dialog, 
   DialogContent, 
@@ -64,6 +66,7 @@ interface MobilePageProps {
   onDeleteDiscipline: (id: string) => void
   onTriggerDiscipline: (id: string) => void
   onResetPoints: () => void
+  onReorderHabits: (orderedIds: string[]) => void
   onCreateReminder: (reminder: Partial<Reminder>) => void
   onCompleteReminder: (id: string) => void
   onUncompleteReminder: (id: string) => void
@@ -112,6 +115,7 @@ export function MobilePage({
   onDeleteDiscipline,
   onTriggerDiscipline,
   onResetPoints,
+  onReorderHabits,
   onCreateReminder,
   onCompleteReminder,
   onUncompleteReminder,
@@ -569,83 +573,23 @@ export function MobilePage({
                   {selectedCompletedCount}/{habits.length} feitos
                 </Badge>
               </CardTitle>
+              {habits.length > 1 && (
+                <p className="text-[11px] text-muted-foreground font-normal">
+                  Segure e arraste o ícone ≡ para mudar a ordem
+                </p>
+              )}
             </CardHeader>
             <CardContent className="p-3 pt-0 space-y-2">
-              {habits.length === 0 ? (
-                <p className="text-xs text-muted-foreground text-center py-4">
-                  Nenhum hábito ainda. Adicione o primeiro abaixo.
-                </p>
-              ) : (
-                habits.map((habit) => {
-                  const completed = isCompleted(habit.id, selectedDateStr)
-
-                  return (
-                    <div
-                      key={habit.id}
-                      className="flex items-center gap-2 rounded-xl border border-border/60 p-2"
-                    >
-                      <button
-                        type="button"
-                        disabled={selectedIsFuture}
-                        onClick={() =>
-                          !selectedIsFuture &&
-                          onToggleHabit(habit.id, selectedDateStr, !completed)
-                        }
-                        className={cn(
-                          'h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-all',
-                          completed && 'bg-green-500 text-white shadow-sm',
-                          !completed && !selectedIsFuture && 'bg-muted hover:bg-muted/80',
-                          selectedIsFuture && 'bg-muted/40 text-muted-foreground cursor-not-allowed',
-                        )}
-                        aria-label={`Marcar ${habit.name}`}
-                      >
-                        {completed ? <Check className="h-4 w-4" /> : null}
-                      </button>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5 min-w-0">
-                          <div className="text-sm font-medium truncate">{habit.name}</div>
-                          {habit.counts_for_points === false && (
-                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 shrink-0 font-normal">
-                              Sem pontos
-                            </Badge>
-                          )}
-                        </div>
-                        <div className="text-[11px] text-muted-foreground">
-                          {selectedIsFuture
-                            ? 'Dia futuro'
-                            : completed
-                              ? 'Concluído'
-                              : 'Pendente'}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-0.5 flex-shrink-0">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => openEditHabit(habit)}
-                          className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
-                          aria-label={`Editar ${habit.name}`}
-                        >
-                          <Edit2 className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            if (confirm(`Deseja deletar o hábito "${habit.name}"?`)) {
-                              onDeleteHabit(habit.id)
-                            }
-                          }}
-                          className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-                          aria-label={`Excluir ${habit.name}`}
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
-                      </div>
-                    </div>
-                  )
-                })
-              )}
+              <HabitSortableList
+                habits={habits}
+                selectedDateStr={selectedDateStr}
+                selectedIsFuture={selectedIsFuture}
+                isCompleted={isCompleted}
+                onToggleHabit={onToggleHabit}
+                onEditHabit={openEditHabit}
+                onDeleteHabit={onDeleteHabit}
+                onReorderHabits={onReorderHabits}
+              />
             </CardContent>
           </Card>
 
@@ -965,6 +909,7 @@ export function MobilePage({
             </CardHeader>
             <CardContent className="p-3 pt-0 space-y-2">
               <UserMenu fullWidth />
+              <AccountSecurityPanel />
               <Button
                 variant="outline"
                 className="w-full h-10 gap-2"

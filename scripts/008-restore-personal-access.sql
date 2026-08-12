@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS habits (
   frequency text DEFAULT 'daily',
   target_count integer DEFAULT 1,
   counts_for_points boolean DEFAULT true,
+  sort_order integer DEFAULT 0,
   is_active boolean DEFAULT true,
   created_at timestamptz DEFAULT now()
 );

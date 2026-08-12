@@ -36,6 +36,7 @@ export async function updateSession(request: NextRequest) {
 
   const path = request.nextUrl.pathname
   const isAuthRoute = path.startsWith('/auth')
+  const isPasswordUpdateRoute = path.startsWith('/auth/update-password')
 
   if (!user && !isAuthRoute) {
     const url = request.nextUrl.clone()
@@ -43,7 +44,7 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  if (user && isAuthRoute) {
+  if (user && isAuthRoute && !isPasswordUpdateRoute) {
     const url = request.nextUrl.clone()
     url.pathname = '/'
     return NextResponse.redirect(url)
