@@ -5,8 +5,8 @@ import { Plus, Check, Trash2, Edit2, ChevronLeft, ChevronRight, Calendar } from 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Switch } from '@/components/ui/switch'
 import { EmojiPicker } from '@/components/emoji-picker'
+import { PointsToggle } from '@/components/points-toggle'
 import { Habit, HabitCompletion } from '@/lib/types'
 import { HABIT_EMOJIS, resolveEmoji } from '@/lib/emoji-options'
 import { cn } from '@/lib/utils'
@@ -742,7 +742,7 @@ export function HabitGrid({
                   {newHabitCountsForPoints ? '+10 pts ao marcar' : 'Só acompanha, sem pontos'}
                 </div>
               </div>
-              <Switch
+              <PointsToggle
                 id="new-habit-points"
                 checked={newHabitCountsForPoints}
                 onCheckedChange={setNewHabitCountsForPoints}
@@ -792,7 +792,7 @@ export function HabitGrid({
                   {editCountsForPoints ? '+10 pts ao marcar' : 'Só acompanha, sem pontos'}
                 </div>
               </div>
-              <Switch
+              <PointsToggle
                 id="edit-habit-points-grid"
                 checked={editCountsForPoints}
                 onCheckedChange={setEditCountsForPoints}

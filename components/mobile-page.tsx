@@ -9,13 +9,13 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Switch } from '@/components/ui/switch'
 import { Logo } from '@/components/logo'
 import { RemindersPanel } from '@/components/reminders-panel'
 import { UserMenu } from '@/components/user-menu'
 import { AccountSecurityPanel } from '@/components/account-security-panel'
 import { HabitSortableList } from '@/components/habit-sortable-list'
 import { EmojiPicker } from '@/components/emoji-picker'
+import { PointsToggle } from '@/components/points-toggle'
 import { HABIT_EMOJIS, resolveEmoji } from '@/lib/emoji-options'
 import { 
   Dialog, 
@@ -635,10 +635,9 @@ export function MobilePage({
                       {newHabitCountsForPoints ? '+10 pts ao marcar' : 'Só acompanha, sem pontos'}
                     </div>
                   </div>
-                  <Switch
+                  <PointsToggle
                     checked={newHabitCountsForPoints}
                     onCheckedChange={setNewHabitCountsForPoints}
-                    aria-label="Vale pontuação"
                   />
                 </div>
                 <div className="flex gap-2">
@@ -982,7 +981,7 @@ export function MobilePage({
                   {editHabitCountsForPoints ? '+10 pts ao marcar' : 'Só acompanha, sem pontos'}
                 </div>
               </div>
-              <Switch
+              <PointsToggle
                 id="edit-habit-points"
                 checked={editHabitCountsForPoints}
                 onCheckedChange={setEditHabitCountsForPoints}

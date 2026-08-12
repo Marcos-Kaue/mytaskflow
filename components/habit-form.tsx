@@ -18,8 +18,8 @@ import {
 import { Habit } from '@/lib/types'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Switch } from '@/components/ui/switch'
 import { EmojiPicker } from '@/components/emoji-picker'
+import { PointsToggle } from '@/components/points-toggle'
 import { HABIT_EMOJIS, resolveEmoji } from '@/lib/emoji-options'
 
 interface HabitFormProps {
@@ -201,7 +201,7 @@ export function HabitForm({ onSubmit, editingHabit, onClose }: HabitFormProps) {
             {countsForPoints ? '+10 pts ao marcar' : 'Só acompanha, sem pontos'}
           </p>
         </div>
-        <Switch
+        <PointsToggle
           id="counts-for-points"
           checked={countsForPoints}
           onCheckedChange={setCountsForPoints}
