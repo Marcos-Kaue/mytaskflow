@@ -98,6 +98,7 @@ export function MobilePage({
   selectedMonth,
   onToggleHabit,
   onCreateHabit,
+  onUpdateHabit,
   onDeleteHabit,
   onMonthChange,
   onCreateReward,
@@ -119,6 +120,9 @@ export function MobilePage({
   const [newHabitName, setNewHabitName] = useState('')
   const [selectedDateStr, setSelectedDateStr] = useState(formatLocalDate(new Date()))
   const [showCalendar, setShowCalendar] = useState(true)
+  const [editingHabit, setEditingHabit] = useState<Habit | null>(null)
+  const [editHabitName, setEditHabitName] = useState('')
+  const [habitEditOpen, setHabitEditOpen] = useState(false)
   
   // Reward states
   const [rewardDialogOpen, setRewardDialogOpen] = useState(false)
@@ -351,6 +355,23 @@ export function MobilePage({
     })
     setNewHabitName('')
     setShowNewHabitForm(false)
+  }
+
+  const openEditHabit = (habit: Habit) => {
+    setEditingHabit(habit)
+    setEditHabitName(habit.name)
+    setHabitEditOpen(true)
+  }
+
+  const handleEditHabit = () => {
+    if (!editingHabit || !editHabitName.trim()) return
+    onUpdateHabit({
+      id: editingHabit.id,
+      name: editHabitName.trim(),
+    })
+    setHabitEditOpen(false)
+    setEditingHabit(null)
+    setEditHabitName('')
   }
 
   const activeDisciplines = disciplines.filter(isDisciplineOpen)
@@ -590,18 +611,30 @@ export function MobilePage({
                               : 'Pendente'}
                         </div>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          if (confirm(`Deseja deletar o hábito "${habit.name}"?`)) {
-                            onDeleteHabit(habit.id)
-                          }
-                        }}
-                        className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
+                      <div className="flex items-center gap-0.5 flex-shrink-0">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => openEditHabit(habit)}
+                          className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                          aria-label={`Editar ${habit.name}`}
+                        >
+                          <Edit2 className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            if (confirm(`Deseja deletar o hábito "${habit.name}"?`)) {
+                              onDeleteHabit(habit.id)
+                            }
+                          }}
+                          className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                          aria-label={`Excluir ${habit.name}`}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
                     </div>
                   )
                 })
@@ -906,6 +939,52 @@ export function MobilePage({
           </Card>
         </TabsContent>
       </Tabs>
+
+      <Dialog
+        open={habitEditOpen}
+        onOpenChange={(open) => {
+          setHabitEditOpen(open)
+          if (!open) {
+            setEditingHabit(null)
+            setEditHabitName('')
+          }
+        }}
+      >
+        <DialogContent className="w-[95vw] max-w-sm rounded-lg">
+          <DialogHeader>
+            <DialogTitle>Editar Hábito</DialogTitle>
+            <DialogDescription>
+              Altere o nome do hábito.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-2">
+              <Label htmlFor="edit-habit-name">Nome</Label>
+              <Input
+                id="edit-habit-name"
+                value={editHabitName}
+                onChange={(e) => setEditHabitName(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleEditHabit()}
+                placeholder="Nome do hábito"
+                autoFocus
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={handleEditHabit} className="flex-1">
+                Salvar
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1"
+                onClick={() => setHabitEditOpen(false)}
+              >
+                Cancelar
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Reward Create/Edit Dialog */}
       <Dialog open={rewardDialogOpen} onOpenChange={setRewardDialogOpen}>
