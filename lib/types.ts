@@ -7,6 +7,7 @@ export interface Habit {
   color: string
   frequency: 'daily' | 'weekly' | 'monthly'
   target_count: number
+  counts_for_points: boolean
   created_at: string
   is_active: boolean
 }

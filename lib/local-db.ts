@@ -58,7 +58,10 @@ export function loadLocalDb(userId: string = LOCAL_USER_ID): LocalDatabase {
     const parsed = JSON.parse(raw) as Partial<LocalDatabase>;
     const fallback = emptyDb(userId);
     return {
-      habits: parsed.habits ?? [],
+      habits: (parsed.habits ?? []).map((item) => ({
+        ...item,
+        counts_for_points: item.counts_for_points !== false,
+      })),
       completions: parsed.completions ?? [],
       stats: parsed.stats ?? fallback.stats,
       rewards: parsed.rewards ?? [],

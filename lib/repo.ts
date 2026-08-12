@@ -185,7 +185,10 @@ export async function fetchHabits(): Promise<Habit[]> {
         .eq("is_active", true)
         .order("created_at", { ascending: true });
       throwIf(error);
-      return data || [];
+      return (data || []).map((item: Habit) => ({
+        ...item,
+        counts_for_points: item.counts_for_points !== false,
+      }));
     },
     () => loadLocalDb(userId).habits.filter((habit) => habit.is_active),
   );
@@ -327,6 +330,7 @@ export async function createHabit(habit: Partial<Habit>): Promise<void> {
     color: habit.color || "#10b981",
     frequency: habit.frequency || "daily",
     target_count: habit.target_count || 1,
+    counts_for_points: habit.counts_for_points !== false,
     is_active: true,
     user_id: userId,
   };
@@ -360,9 +364,14 @@ export async function updateHabit(habit: Partial<Habit>): Promise<void> {
   await withBackend(
     async () => {
       const supabase = createBrowserClient();
+      const updates: Partial<Habit> = {};
+      if (habit.name !== undefined) updates.name = habit.name;
+      if (habit.counts_for_points !== undefined) {
+        updates.counts_for_points = habit.counts_for_points;
+      }
       const { error } = await supabase
         .from("habits")
-        .update({ name: habit.name })
+        .update(updates)
         .eq("id", habit.id)
         .eq("user_id", userId);
       throwIf(error);
@@ -370,7 +379,16 @@ export async function updateHabit(habit: Partial<Habit>): Promise<void> {
     () => {
       const db = loadLocalDb(userId);
       db.habits = db.habits.map((item) =>
-        item.id === habit.id ? { ...item, name: habit.name || item.name } : item,
+        item.id === habit.id
+          ? {
+              ...item,
+              name: habit.name || item.name,
+              counts_for_points:
+                habit.counts_for_points !== undefined
+                  ? habit.counts_for_points
+                  : item.counts_for_points,
+            }
+          : item,
       );
       saveLocalDb(db, userId);
     },

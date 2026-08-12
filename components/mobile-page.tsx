@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
 import { Logo } from '@/components/logo'
 import { RemindersPanel } from '@/components/reminders-panel'
 import { UserMenu } from '@/components/user-menu'
@@ -119,10 +120,12 @@ export function MobilePage({
   const [activeTab, setActiveTab] = useState('habits')
   const [showNewHabitForm, setShowNewHabitForm] = useState(false)
   const [newHabitName, setNewHabitName] = useState('')
+  const [newHabitCountsForPoints, setNewHabitCountsForPoints] = useState(true)
   const [selectedDateStr, setSelectedDateStr] = useState(formatLocalDate(new Date()))
   const [showCalendar, setShowCalendar] = useState(true)
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null)
   const [editHabitName, setEditHabitName] = useState('')
+  const [editHabitCountsForPoints, setEditHabitCountsForPoints] = useState(true)
   const [habitEditOpen, setHabitEditOpen] = useState(false)
   
   // Reward states
@@ -353,14 +356,17 @@ export function MobilePage({
       color: 'emerald',
       frequency: 'daily',
       target_count: 1,
+      counts_for_points: newHabitCountsForPoints,
     })
     setNewHabitName('')
+    setNewHabitCountsForPoints(true)
     setShowNewHabitForm(false)
   }
 
   const openEditHabit = (habit: Habit) => {
     setEditingHabit(habit)
     setEditHabitName(habit.name)
+    setEditHabitCountsForPoints(habit.counts_for_points !== false)
     setHabitEditOpen(true)
   }
 
@@ -369,10 +375,12 @@ export function MobilePage({
     onUpdateHabit({
       id: editingHabit.id,
       name: editHabitName.trim(),
+      counts_for_points: editHabitCountsForPoints,
     })
     setHabitEditOpen(false)
     setEditingHabit(null)
     setEditHabitName('')
+    setEditHabitCountsForPoints(true)
   }
 
   const activeDisciplines = disciplines.filter(isDisciplineOpen)
@@ -594,7 +602,14 @@ export function MobilePage({
                         {completed ? <Check className="h-4 w-4" /> : null}
                       </button>
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium truncate">{habit.name}</div>
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <div className="text-sm font-medium truncate">{habit.name}</div>
+                          {habit.counts_for_points === false && (
+                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 shrink-0 font-normal">
+                              Sem pontos
+                            </Badge>
+                          )}
+                        </div>
                         <div className="text-[11px] text-muted-foreground">
                           {selectedIsFuture
                             ? 'Dia futuro'
@@ -655,6 +670,19 @@ export function MobilePage({
                   className="w-full px-3 py-2 border rounded-lg text-sm"
                   autoFocus
                 />
+                <div className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2">
+                  <div className="min-w-0">
+                    <div className="text-sm font-medium">Vale pontuação</div>
+                    <div className="text-[11px] text-muted-foreground">
+                      {newHabitCountsForPoints ? '+10 pts ao marcar' : 'Só acompanha, sem pontos'}
+                    </div>
+                  </div>
+                  <Switch
+                    checked={newHabitCountsForPoints}
+                    onCheckedChange={setNewHabitCountsForPoints}
+                    aria-label="Vale pontuação"
+                  />
+                </div>
                 <div className="flex gap-2">
                   <Button onClick={handleQuickAddHabit} className="flex-1" size="sm">
                     Criar
@@ -663,6 +691,7 @@ export function MobilePage({
                     onClick={() => {
                       setShowNewHabitForm(false)
                       setNewHabitName('')
+                      setNewHabitCountsForPoints(true)
                     }} 
                     variant="outline" 
                     className="flex-1"
@@ -956,6 +985,7 @@ export function MobilePage({
           if (!open) {
             setEditingHabit(null)
             setEditHabitName('')
+            setEditHabitCountsForPoints(true)
           }
         }}
       >
@@ -963,7 +993,7 @@ export function MobilePage({
           <DialogHeader>
             <DialogTitle>Editar Hábito</DialogTitle>
             <DialogDescription>
-              Altere o nome do hábito.
+              Altere o nome e se o hábito vale pontuação.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
@@ -976,6 +1006,19 @@ export function MobilePage({
                 onKeyDown={(e) => e.key === 'Enter' && handleEditHabit()}
                 placeholder="Nome do hábito"
                 autoFocus
+              />
+            </div>
+            <div className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2">
+              <div className="min-w-0">
+                <Label htmlFor="edit-habit-points">Vale pontuação</Label>
+                <div className="text-[11px] text-muted-foreground">
+                  {editHabitCountsForPoints ? '+10 pts ao marcar' : 'Só acompanha, sem pontos'}
+                </div>
+              </div>
+              <Switch
+                id="edit-habit-points"
+                checked={editHabitCountsForPoints}
+                onCheckedChange={setEditHabitCountsForPoints}
               />
             </div>
             <div className="flex gap-2">

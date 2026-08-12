@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS habits (
   color text DEFAULT '#10b981',
   frequency text DEFAULT 'daily',
   target_count integer DEFAULT 1,
+  counts_for_points boolean DEFAULT true,
   is_active boolean DEFAULT true,
   created_at timestamptz DEFAULT now()
 );

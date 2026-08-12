@@ -18,6 +18,7 @@ import {
 import { Habit } from '@/lib/types'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Switch } from '@/components/ui/switch'
 
 interface HabitFormProps {
   onSubmit: (habit: Partial<Habit>) => void
@@ -56,6 +57,9 @@ export function HabitForm({ onSubmit, editingHabit, onClose }: HabitFormProps) {
     editingHabit?.frequency || 'daily'
   )
   const [targetCount, setTargetCount] = useState(editingHabit?.target_count || 1)
+  const [countsForPoints, setCountsForPoints] = useState(
+    editingHabit?.counts_for_points !== false,
+  )
   const isMobile = useIsMobile() === true
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -70,6 +74,7 @@ export function HabitForm({ onSubmit, editingHabit, onClose }: HabitFormProps) {
       color,
       frequency,
       target_count: targetCount,
+      counts_for_points: countsForPoints,
     })
     
     resetForm()
@@ -84,6 +89,7 @@ export function HabitForm({ onSubmit, editingHabit, onClose }: HabitFormProps) {
     setColor('emerald')
     setFrequency('daily')
     setTargetCount(1)
+    setCountsForPoints(true)
   }
 
   const handleCancel = () => {
@@ -209,6 +215,22 @@ export function HabitForm({ onSubmit, editingHabit, onClose }: HabitFormProps) {
             className="text-xs sm:text-sm h-8 sm:h-9"
           />
         </div>
+      </div>
+
+      <div className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2">
+        <div className="min-w-0 space-y-0.5">
+          <Label htmlFor="counts-for-points" className="text-xs sm:text-sm">
+            Vale pontuação
+          </Label>
+          <p className="text-[11px] text-muted-foreground">
+            {countsForPoints ? '+10 pts ao marcar' : 'Só acompanha, sem pontos'}
+          </p>
+        </div>
+        <Switch
+          id="counts-for-points"
+          checked={countsForPoints}
+          onCheckedChange={setCountsForPoints}
+        />
       </div>
 
       <div className="flex gap-2">

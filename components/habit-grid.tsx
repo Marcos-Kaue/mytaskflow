@@ -4,6 +4,8 @@ import { useState, useMemo } from 'react'
 import { Plus, Check, Trash2, Edit2, ChevronLeft, ChevronRight, Calendar } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
 import { Habit, HabitCompletion } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import {
@@ -77,8 +79,10 @@ export function HabitGrid({
   onMonthChange,
 }: HabitGridProps) {
   const [newHabitName, setNewHabitName] = useState('')
+  const [newHabitCountsForPoints, setNewHabitCountsForPoints] = useState(true)
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null)
   const [editName, setEditName] = useState('')
+  const [editCountsForPoints, setEditCountsForPoints] = useState(true)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [processingCells, setProcessingCells] = useState<Set<string>>(new Set())
@@ -147,8 +151,10 @@ export function HabitGrid({
       color: '#000000',
       frequency: 'daily',
       target_count: 1,
+      counts_for_points: newHabitCountsForPoints,
     })
     setNewHabitName('')
+    setNewHabitCountsForPoints(true)
     setIsDialogOpen(false)
   }
   
@@ -157,15 +163,18 @@ export function HabitGrid({
     onUpdateHabit({
       id: editingHabit.id,
       name: editName.trim(),
+      counts_for_points: editCountsForPoints,
     })
     setEditingHabit(null)
     setEditName('')
+    setEditCountsForPoints(true)
     setIsEditDialogOpen(false)
   }
   
   const openEditDialog = (habit: Habit) => {
     setEditingHabit(habit)
     setEditName(habit.name)
+    setEditCountsForPoints(habit.counts_for_points !== false)
     setIsEditDialogOpen(true)
   }
   
@@ -302,7 +311,12 @@ export function HabitGrid({
               <tr key={habit.id} className="group">
                 <td className="sticky left-0 z-10 bg-card border border-border p-1 min-w-[120px] sm:min-w-[150px]">
                   <div className="flex items-center justify-between gap-1">
-                    <span className="truncate text-xs sm:text-sm">{habit.name}</span>
+                    <div className="min-w-0 flex-1">
+                      <span className="truncate text-xs sm:text-sm block">{habit.name}</span>
+                      {habit.counts_for_points === false && (
+                        <span className="text-[10px] text-muted-foreground">Sem pontos</span>
+                      )}
+                    </div>
                     <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={() => openEditDialog(habit)}
@@ -511,7 +525,12 @@ export function HabitGrid({
                 <tr key={habit.id} className="group">
                   <td className="sticky left-0 z-10 bg-card border border-border p-1 min-w-[80px] max-w-[100px]">
                     <div className="flex items-center justify-between gap-1">
-                      <span className="truncate text-xs block flex-1">{habit.name}</span>
+                      <div className="min-w-0 flex-1">
+                        <span className="truncate text-xs block">{habit.name}</span>
+                        {habit.counts_for_points === false && (
+                          <span className="text-[9px] text-muted-foreground">Sem pts</span>
+                        )}
+                      </div>
                       <div className="flex gap-0.5 flex-shrink-0">
                         <button
                           onClick={(e) => {
@@ -668,7 +687,16 @@ export function HabitGrid({
       </div>
       
       {/* Add Habit Button */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <Dialog
+        open={isDialogOpen}
+        onOpenChange={(open) => {
+          setIsDialogOpen(open)
+          if (!open) {
+            setNewHabitName('')
+            setNewHabitCountsForPoints(true)
+          }
+        }}
+      >
         <DialogTrigger asChild>
           <Button variant="outline" className="w-full border-dashed">
             <Plus className="mr-2 h-4 w-4" />
@@ -686,6 +714,19 @@ export function HabitGrid({
               onChange={(e) => setNewHabitName(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleCreateHabit()}
             />
+            <div className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2">
+              <div className="min-w-0">
+                <Label htmlFor="new-habit-points">Vale pontuação</Label>
+                <div className="text-xs text-muted-foreground">
+                  {newHabitCountsForPoints ? '+10 pts ao marcar' : 'Só acompanha, sem pontos'}
+                </div>
+              </div>
+              <Switch
+                id="new-habit-points"
+                checked={newHabitCountsForPoints}
+                onCheckedChange={setNewHabitCountsForPoints}
+              />
+            </div>
             <Button onClick={handleCreateHabit} className="w-full">
               Criar Habito
             </Button>
@@ -694,7 +735,17 @@ export function HabitGrid({
       </Dialog>
       
       {/* Edit Habit Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+      <Dialog
+        open={isEditDialogOpen}
+        onOpenChange={(open) => {
+          setIsEditDialogOpen(open)
+          if (!open) {
+            setEditingHabit(null)
+            setEditName('')
+            setEditCountsForPoints(true)
+          }
+        }}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Editar Habito</DialogTitle>
@@ -706,6 +757,19 @@ export function HabitGrid({
               onChange={(e) => setEditName(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleEditHabit()}
             />
+            <div className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2">
+              <div className="min-w-0">
+                <Label htmlFor="edit-habit-points-grid">Vale pontuação</Label>
+                <div className="text-xs text-muted-foreground">
+                  {editCountsForPoints ? '+10 pts ao marcar' : 'Só acompanha, sem pontos'}
+                </div>
+              </div>
+              <Switch
+                id="edit-habit-points-grid"
+                checked={editCountsForPoints}
+                onCheckedChange={setEditCountsForPoints}
+              />
+            </div>
             <Button onClick={handleEditHabit} className="w-full">
               Salvar
             </Button>

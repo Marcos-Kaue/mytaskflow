@@ -187,6 +187,9 @@ export default function HomePage() {
 
   const handleToggleHabit = async (habitId: string, dateStr: string, shouldComplete: boolean) => {
     try {
+      const habit = habits.find((item) => item.id === habitId)
+      const countsForPoints = habit?.counts_for_points !== false
+
       if (shouldComplete) {
         const existingCompletions = completions.filter(c => {
           const completionDate = c.completed_at.split('T')[0]
@@ -204,13 +207,13 @@ export default function HomePage() {
         
         const newStreak = (stats?.current_streak || 0) + 1
         await updateStats({
-          total_points: (stats?.total_points || 0) + 10,
+          total_points: (stats?.total_points || 0) + (countsForPoints ? 10 : 0),
           total_completions: (stats?.total_completions || 0) + 1,
           current_streak: newStreak,
           longest_streak: Math.max((stats?.longest_streak || 0), newStreak),
         })
         
-        toast({ title: '+10 pontos!' })
+        toast({ title: countsForPoints ? '+10 pontos!' : 'Hábito marcado (sem pontos)' })
       } else {
         const dayCompletions = completions.filter(c => {
           const completionDate = c.completed_at.split('T')[0]
@@ -220,7 +223,7 @@ export default function HomePage() {
         if (dayCompletions.length > 0) {
           await deleteCompletions(dayCompletions.map(c => c.id))
           
-          const pointsToRemove = dayCompletions.length * 10
+          const pointsToRemove = countsForPoints ? dayCompletions.length * 10 : 0
           const completionsToRemove = dayCompletions.length
           
           await updateStats({
