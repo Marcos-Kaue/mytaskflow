@@ -51,6 +51,9 @@ export interface Discipline {
   penalty_value: number
   triggered_at: string | null
   goal_id: string | null
+  deadline_at: string | null
+  target_points: number
+  fulfilled_at: string | null
   created_at: string
 }
 
@@ -59,6 +62,7 @@ export interface Reminder {
   user_id: string
   title: string
   notes: string | null
+  due_at: string | null
   is_completed: boolean
   completed_at: string | null
   created_at: string

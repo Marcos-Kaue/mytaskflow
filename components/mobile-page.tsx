@@ -28,6 +28,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { cn } from '@/lib/utils'
+import { defaultDeadlineDate, formatDeadline, getDisciplineProgress, isDisciplineOpen } from '@/lib/discipline'
 
 const rewardIcons = [
   { value: 'movie', emoji: '🎬', label: 'Filme' },
@@ -134,6 +135,8 @@ export function MobilePage({
   const [disciplineDescription, setDisciplineDescription] = useState('')
   const [disciplinePenaltyValue, setDisciplinePenaltyValue] = useState(10)
   const [disciplinePenaltyType, setDisciplinePenaltyType] = useState<'points' | 'streak_reset' | 'custom'>('points')
+  const [disciplineDeadline, setDisciplineDeadline] = useState(defaultDeadlineDate())
+  const [disciplineTargetPoints, setDisciplineTargetPoints] = useState(100)
   const [triggerConfirmId, setTriggerConfirmId] = useState<string | null>(null)
 
   const today = new Date()
@@ -198,6 +201,8 @@ export function MobilePage({
         description: disciplineDescription.trim() || null,
         penalty_value: disciplinePenaltyValue,
         penalty_type: disciplinePenaltyType,
+        deadline_at: disciplineDeadline || null,
+        target_points: disciplineTargetPoints,
       })
     } else {
       onCreateDiscipline({
@@ -205,6 +210,8 @@ export function MobilePage({
         description: disciplineDescription.trim() || null,
         penalty_value: disciplinePenaltyValue,
         penalty_type: disciplinePenaltyType,
+        deadline_at: disciplineDeadline || null,
+        target_points: disciplineTargetPoints,
       })
     }
 
@@ -218,6 +225,8 @@ export function MobilePage({
     setDisciplineDescription(discipline.description || '')
     setDisciplinePenaltyValue(discipline.penalty_value)
     setDisciplinePenaltyType(discipline.penalty_type)
+    setDisciplineDeadline(discipline.deadline_at || defaultDeadlineDate())
+    setDisciplineTargetPoints(discipline.target_points || 100)
     setDisciplineDialogOpen(true)
   }
 
@@ -232,6 +241,8 @@ export function MobilePage({
     setDisciplineDescription('')
     setDisciplinePenaltyValue(10)
     setDisciplinePenaltyType('points')
+    setDisciplineDeadline(defaultDeadlineDate())
+    setDisciplineTargetPoints(100)
     setEditingDiscipline(null)
   }
 
@@ -342,89 +353,89 @@ export function MobilePage({
     setShowNewHabitForm(false)
   }
 
-  const activeDisciplines = disciplines.filter(d => !d.triggered_at || d.triggered_at === d.created_at)
+  const activeDisciplines = disciplines.filter(isDisciplineOpen)
   const availableRewards = rewards.filter(r => !r.is_claimed)
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      {/* Compact Header */}
-      <header className="sticky top-0 z-40 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg">
-        <div className="px-4 py-3">
-          <div className="flex items-center justify-between mb-3 gap-2">
-            <div className="flex items-center gap-2 min-w-0">
-              <Logo size={32} />
-              <h1 className="text-lg font-bold truncate">MyTaskFlow</h1>
-            </div>
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary" className="text-xs">
-                {MONTHS[selectedMonth]} {selectedYear}
-              </Badge>
-              <Button
-                size="sm"
-                variant="secondary"
-                className="h-8 px-2 gap-1 text-[11px]"
-                onClick={onResetPoints}
-              >
-                <RotateCcw className="h-3 w-3" />
-                Zerar
-              </Button>
-            </div>
-          </div>
-          
-          {/* Stats Row */}
-          <div className="grid grid-cols-3 gap-2 text-xs">
-            <div className="bg-white/10 rounded-lg p-2 flex items-center gap-1.5">
-              <Zap className="h-3.5 w-3.5 flex-shrink-0" />
-              <div>
-                <div className="font-bold text-sm">{stats?.total_points || 0}</div>
-                <div className="text-[10px] opacity-80">Pontos</div>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full gap-0">
+        <div className="sticky top-0 z-40 bg-background">
+          <header className="bg-primary text-primary-foreground shadow-lg">
+            <div className="px-4 py-3">
+              <div className="flex items-center justify-between mb-3 gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <Logo size={32} />
+                  <h1 className="text-lg font-bold truncate">MyTaskFlow</h1>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary" className="text-xs">
+                    {MONTHS[selectedMonth]} {selectedYear}
+                  </Badge>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    className="h-8 px-2 gap-1 text-[11px]"
+                    onClick={onResetPoints}
+                  >
+                    <RotateCcw className="h-3 w-3" />
+                    Zerar
+                  </Button>
+                </div>
+              </div>
+              
+              {/* Stats Row */}
+              <div className="grid grid-cols-3 gap-2 text-xs">
+                <div className="bg-white/10 rounded-lg p-2 flex items-center gap-1.5">
+                  <Zap className="h-3.5 w-3.5 flex-shrink-0" />
+                  <div>
+                    <div className="font-bold text-sm">{stats?.total_points || 0}</div>
+                    <div className="text-[10px] opacity-80">Pontos</div>
+                  </div>
+                </div>
+                <div className="bg-white/10 rounded-lg p-2 flex items-center gap-1.5">
+                  <Flame className="h-3.5 w-3.5 flex-shrink-0" />
+                  <div>
+                    <div className="font-bold text-sm">{stats?.current_streak || 0}</div>
+                    <div className="text-[10px] opacity-80">Sequência</div>
+                  </div>
+                </div>
+                <div className="bg-white/10 rounded-lg p-2 flex items-center gap-1.5">
+                  <Target className="h-3.5 w-3.5 flex-shrink-0" />
+                  <div>
+                    <div className="font-bold text-sm">{monthlyProgress}%</div>
+                    <div className="text-[10px] opacity-80">Mês</div>
+                  </div>
+                </div>
               </div>
             </div>
-            <div className="bg-white/10 rounded-lg p-2 flex items-center gap-1.5">
-              <Flame className="h-3.5 w-3.5 flex-shrink-0" />
-              <div>
-                <div className="font-bold text-sm">{stats?.current_streak || 0}</div>
-                <div className="text-[10px] opacity-80">Sequência</div>
-              </div>
-            </div>
-            <div className="bg-white/10 rounded-lg p-2 flex items-center gap-1.5">
-              <Target className="h-3.5 w-3.5 flex-shrink-0" />
-              <div>
-                <div className="font-bold text-sm">{monthlyProgress}%</div>
-                <div className="text-[10px] opacity-80">Mês</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
+          </header>
 
-      {/* Main Content */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="w-full sticky top-[132px] z-30 rounded-none border-b bg-background h-12 grid grid-cols-5">
-          <TabsTrigger value="habits" className="text-[10px] flex flex-col gap-0.5 h-full px-1">
-            <Calendar className="h-4 w-4" />
-            <span>Hábitos</span>
-          </TabsTrigger>
-          <TabsTrigger value="reminders" className="text-[10px] flex flex-col gap-0.5 h-full px-1">
-            <Bell className="h-4 w-4" />
-            <span>Lembretes</span>
-          </TabsTrigger>
-          <TabsTrigger value="rewards" className="text-[10px] flex flex-col gap-0.5 h-full px-1">
-            <Gift className="h-4 w-4" />
-            <span>Prêmios</span>
-          </TabsTrigger>
-          <TabsTrigger value="discipline" className="text-[10px] flex flex-col gap-0.5 h-full px-1">
-            <AlertTriangle className="h-4 w-4" />
-            <span>Disciplina</span>
-          </TabsTrigger>
-          <TabsTrigger value="stats" className="text-[10px] flex flex-col gap-0.5 h-full px-1">
-            <TrendingUp className="h-4 w-4" />
-            <span>Análise</span>
-          </TabsTrigger>
-        </TabsList>
+          <TabsList className="w-full rounded-none border-b bg-background h-12 grid grid-cols-5">
+            <TabsTrigger value="habits" className="text-[10px] flex flex-col gap-0.5 h-full px-1">
+              <Calendar className="h-4 w-4" />
+              <span>Hábitos</span>
+            </TabsTrigger>
+            <TabsTrigger value="reminders" className="text-[10px] flex flex-col gap-0.5 h-full px-1">
+              <Bell className="h-4 w-4" />
+              <span>Lembretes</span>
+            </TabsTrigger>
+            <TabsTrigger value="rewards" className="text-[10px] flex flex-col gap-0.5 h-full px-1">
+              <Gift className="h-4 w-4" />
+              <span>Prêmios</span>
+            </TabsTrigger>
+            <TabsTrigger value="discipline" className="text-[10px] flex flex-col gap-0.5 h-full px-1">
+              <AlertTriangle className="h-4 w-4" />
+              <span>Disciplina</span>
+            </TabsTrigger>
+            <TabsTrigger value="stats" className="text-[10px] flex flex-col gap-0.5 h-full px-1">
+              <TrendingUp className="h-4 w-4" />
+              <span>Análise</span>
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         {/* Habits Tab */}
-        <TabsContent value="habits" className="mt-0 p-3 space-y-3">
+        <TabsContent value="habits" className="mt-0 p-3 space-y-3 bg-background">
           <Card className="border-primary/20">
             <CardContent className="p-3 space-y-3">
               <div className="flex items-center justify-between gap-2">
@@ -482,7 +493,7 @@ export function MobilePage({
                   <div className="grid grid-cols-7 gap-1">
                     {calendarDays.map((day, index) => {
                       if (!day) {
-                        return <div key={`empty-${index}`} className="aspect-square" />
+                        return <div key={`empty-${index}`} className="aspect-square bg-background" />
                       }
 
                       const progress = getDayProgress(day.dateStr)
@@ -505,7 +516,7 @@ export function MobilePage({
                           )}
                         >
                           <span>{day.date}</span>
-                          {!isFuture && habits.length > 0 && (
+                          {!isFuture && habits.length > 0 && progress > 0 && (
                             <span
                               className={cn(
                                 'h-1 w-1 rounded-full',
@@ -513,9 +524,7 @@ export function MobilePage({
                                   ? 'bg-primary-foreground'
                                   : progress === 100
                                     ? 'bg-green-500'
-                                    : progress > 0
-                                      ? 'bg-primary'
-                                      : 'bg-transparent',
+                                    : 'bg-primary',
                               )}
                             />
                           )}
@@ -642,7 +651,7 @@ export function MobilePage({
           )}
         </TabsContent>
 
-        <TabsContent value="reminders" className="mt-0 p-3">
+        <TabsContent value="reminders" className="mt-0 p-3 bg-background">
           <RemindersPanel
             reminders={reminders}
             onCreateReminder={onCreateReminder}
@@ -653,7 +662,7 @@ export function MobilePage({
         </TabsContent>
 
         {/* Rewards Tab */}
-        <TabsContent value="rewards" className="mt-0 p-3 space-y-3">
+        <TabsContent value="rewards" className="mt-0 p-3 space-y-3 bg-background">
           <div className="bg-primary/10 rounded-lg p-3 text-center mb-4">
             <div className="text-2xl font-bold text-primary">{stats?.total_points || 0}</div>
             <div className="text-xs text-muted-foreground">Pontos Disponíveis</div>
@@ -742,7 +751,7 @@ export function MobilePage({
         </TabsContent>
 
         {/* Discipline Tab */}
-        <TabsContent value="discipline" className="mt-0 p-3 space-y-3">
+        <TabsContent value="discipline" className="mt-0 p-3 space-y-3 bg-background">
           <Button 
             onClick={() => {
               resetDisciplineForm()
@@ -757,7 +766,10 @@ export function MobilePage({
           </Button>
 
           <div className="space-y-2">
-            {activeDisciplines.map(discipline => (
+            {activeDisciplines.map(discipline => {
+              const progress = getDisciplineProgress(discipline, stats?.total_points || 0)
+
+              return (
               <Card key={discipline.id} className="border-destructive/30">
                 <CardHeader className="p-3 pb-2 bg-destructive/5">
                   <CardTitle className="text-sm flex items-center justify-between">
@@ -771,6 +783,26 @@ export function MobilePage({
                   {discipline.description && (
                     <p className="text-xs text-muted-foreground mb-2">{discipline.description}</p>
                   )}
+                  <div className="rounded-lg bg-muted/50 p-2 mb-2 space-y-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">Prazo</span>
+                      <span className="font-medium">{formatDeadline(discipline.deadline_at)}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">Pontuação a cumprir</span>
+                      <span className="font-medium">{progress.current}/{progress.target} pts</span>
+                    </div>
+                    <p className={cn(
+                      'text-[11px] font-medium',
+                      progress.metTarget ? 'text-primary' : 'text-destructive',
+                    )}>
+                      {progress.metTarget
+                        ? 'Meta atingida'
+                        : progress.daysLeft !== null && progress.daysLeft >= 0
+                          ? `Faltam ${progress.remainingPoints} pts · ${progress.daysLeft} dia(s)`
+                          : `Faltam ${progress.remainingPoints} pts`}
+                    </p>
+                  </div>
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-medium text-destructive">
                       -{discipline.penalty_value} {discipline.penalty_type === 'points' ? 'pontos' : 'sequência'}
@@ -810,7 +842,8 @@ export function MobilePage({
                   </div>
                 </CardContent>
               </Card>
-            ))}
+              )
+            })}
           </div>
 
           {activeDisciplines.length === 0 && (
@@ -821,7 +854,7 @@ export function MobilePage({
         </TabsContent>
 
         {/* Stats Tab */}
-        <TabsContent value="stats" className="mt-0 p-3 space-y-3">
+        <TabsContent value="stats" className="mt-0 p-3 space-y-3 bg-background">
           <Card>
             <CardHeader className="p-3">
               <CardTitle className="text-sm">Resumo do Mês</CardTitle>
@@ -962,7 +995,9 @@ export function MobilePage({
           <DialogHeader>
             <DialogTitle>{editingDiscipline ? 'Editar Disciplina' : 'Criar Disciplina'}</DialogTitle>
             <DialogDescription>
-              {editingDiscipline ? 'Atualize os detalhes da disciplina' : 'Crie uma nova regra de disciplina'}
+              {editingDiscipline
+                ? 'Atualize os detalhes da disciplina'
+                : 'Defina o prazo e a pontuação. Se não cumprir, a disciplina é aplicada.'}
             </DialogDescription>
           </DialogHeader>
           
@@ -1001,6 +1036,32 @@ export function MobilePage({
                 <option value="streak_reset">Resetar Sequência</option>
                 <option value="custom">Personalizado</option>
               </select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="discipline-deadline">Prazo</Label>
+              <Input
+                id="discipline-deadline"
+                type="date"
+                value={disciplineDeadline}
+                onChange={(e) => setDisciplineDeadline(e.target.value)}
+                required
+              />
+              <p className="text-[11px] text-muted-foreground">
+                Se a pontuação não for cumprida até esta data, a disciplina é aplicada.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="discipline-target">Pontuação a cumprir</Label>
+              <Input
+                id="discipline-target"
+                type="number"
+                min={0}
+                value={disciplineTargetPoints}
+                onChange={(e) => setDisciplineTargetPoints(Number(e.target.value))}
+                required
+              />
             </div>
 
             <div className="space-y-2">

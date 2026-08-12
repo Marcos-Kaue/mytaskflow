@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useCallback, useState } from 'react'
+import { useEffect, useCallback, useRef, useState } from 'react'
 import useSWR, { mutate } from 'swr'
 import { toast } from '@/hooks/use-toast'
 import { HabitGrid } from '@/components/habit-grid'
@@ -11,11 +11,13 @@ import { DisciplinePanel } from '@/components/discipline-panel'
 import { MobilePage } from '@/components/mobile-page'
 import { Logo } from '@/components/logo'
 import { StorageBanner } from '@/components/storage-banner'
+import { DateAlerts } from '@/components/date-alerts'
 import { RemindersPanel } from '@/components/reminders-panel'
 import { Button } from '@/components/ui/button'
 import { Habit, HabitCompletion, UserStats, Reward, Discipline, Reminder } from '@/lib/types'
 import { Flame, RotateCcw, Target, Zap } from 'lucide-react'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { formatLocalDate, isDisciplineOpen } from '@/lib/discipline'
 import {
   claimReward,
   completeReminder,
@@ -35,6 +37,7 @@ import {
   fetchReminders,
   fetchRewards,
   fetchStats,
+  fulfillDiscipline,
   getBackendStatus,
   insertCompletion,
   resetPoints,
@@ -55,8 +58,10 @@ export default function HomePage() {
   const completionKey = `completions-${selectedYear}-${selectedMonth}`
   
   const { data: habits = [] } = useSWR<Habit[]>('habits', fetchHabits)
-  const { data: completions = [] } = useSWR<HabitCompletion[]>(completionKey, () =>
-    fetchCompletions(selectedYear, selectedMonth),
+  const { data: completions = [] } = useSWR<HabitCompletion[]>(
+    completionKey,
+    () => fetchCompletions(selectedYear, selectedMonth),
+    { keepPreviousData: true },
   )
   const { data: stats } = useSWR<UserStats | null>('stats', fetchStats)
   const { data: rewards = [] } = useSWR<Reward[]>('rewards', fetchRewards)
@@ -64,6 +69,7 @@ export default function HomePage() {
   const { data: reminders = [] } = useSWR<Reminder[]>('reminders', fetchReminders)
 
   const backendStatus = getBackendStatus()
+  const processedDeadlines = useRef(new Set<string>())
 
   const initUserStats = useCallback(async () => {
     try {
@@ -77,6 +83,60 @@ export default function HomePage() {
   useEffect(() => {
     initUserStats()
   }, [initUserStats])
+
+  useEffect(() => {
+    if (!stats) return
+
+    const today = formatLocalDate(new Date())
+    const expired = disciplines.filter((discipline) => {
+      if (processedDeadlines.current.has(discipline.id)) return false
+      if (!isDisciplineOpen(discipline)) return false
+      if (!discipline.deadline_at || discipline.deadline_at >= today) return false
+      return true
+    })
+    if (expired.length === 0) return
+
+    let cancelled = false
+    let remainingPoints = stats.total_points || 0
+
+    ;(async () => {
+      for (const discipline of expired) {
+        if (cancelled) return
+        processedDeadlines.current.add(discipline.id)
+        const metTarget = remainingPoints >= (discipline.target_points || 0)
+
+        try {
+          if (metTarget) {
+            await fulfillDiscipline(discipline.id)
+            toast({ title: `Prazo cumprido: ${discipline.name}` })
+          } else {
+            await triggerDiscipline(discipline.id)
+            if (discipline.penalty_type === 'points') {
+              remainingPoints = Math.max(remainingPoints - discipline.penalty_value, 0)
+              await updateStats({ total_points: remainingPoints })
+            } else if (discipline.penalty_type === 'streak_reset') {
+              await updateStats({ current_streak: 0 })
+            }
+            toast({
+              title: `Prazo vencido: ${discipline.name}`,
+              description: 'A pontuação não foi cumprida e a disciplina foi aplicada.',
+              variant: 'destructive',
+            })
+          }
+        } catch (error) {
+          processedDeadlines.current.delete(discipline.id)
+          console.error('Erro ao avaliar prazo da disciplina:', error)
+        }
+      }
+
+      mutate('disciplines')
+      mutate('stats')
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [disciplines, stats])
 
   const handleCreateHabit = async (habit: Partial<Habit>) => {
     try {
@@ -364,10 +424,15 @@ export default function HomePage() {
   })()
 
   // Render Mobile Version
+  if (isMobile === undefined) {
+    return <div className="min-h-screen bg-background" />
+  }
+
   if (isMobile) {
     return (
       <div className="min-h-screen">
         <StorageBanner status={backendStatus} />
+        <DateAlerts disciplines={disciplines} reminders={reminders} />
         <MobilePage
           habits={habits}
           completions={completions}
@@ -409,7 +474,8 @@ export default function HomePage() {
     <div className="w-full overflow-x-hidden">
     <div className="min-h-screen bg-background flex flex-col">
       <StorageBanner status={backendStatus} />
-      <header className="sticky top-0 z-40 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg">
+      <DateAlerts disciplines={disciplines} reminders={reminders} />
+      <header className="sticky top-0 z-40 bg-primary text-primary-foreground shadow-lg">
         <div className="mx-auto max-w-5xl px-3 sm:px-4 py-4 sm:py-5">
           <div className="flex items-center justify-center gap-3 mb-3">
             <Logo size={44} className="drop-shadow-lg" />
@@ -500,6 +566,7 @@ export default function HomePage() {
             
             <DisciplinePanel
               disciplines={disciplines}
+              stats={stats || null}
               onCreateDiscipline={handleCreateDiscipline}
               onUpdateDiscipline={handleUpdateDiscipline}
               onDeleteDiscipline={handleDeleteDiscipline}

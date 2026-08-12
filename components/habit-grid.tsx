@@ -190,7 +190,7 @@ export function HabitGrid({
   }, [weekGroups, mobileWeekIndex])
   
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 rounded-xl border border-primary/20 bg-card p-3 sm:p-4">
       {/* Stats Header */}
       <div className="flex justify-center gap-8 sm:gap-16 py-3 sm:py-4 border-b border-border px-2">
         <div className="text-center">
@@ -204,7 +204,7 @@ export function HabitGrid({
       </div>
       
       {/* Month Header with Navigation */}
-      <div className="bg-primary/10 py-2 sm:py-3 border border-primary/15 rounded-t-xl">
+      <div className="py-2 sm:py-3 border-b border-border">
         <div className="flex items-center justify-between px-2 sm:px-4 gap-2">
           <button
             onClick={handlePreviousMonth}
@@ -240,7 +240,7 @@ export function HabitGrid({
       </div>
       
       {/* Grid Container - Desktop Version */}
-      <div className="hidden sm:block w-full overflow-x-auto pb-4 -mx-3 sm:mx-0 px-3 sm:px-0">
+      <div className="hidden sm:block w-full overflow-x-auto pb-4">
         <div className="min-w-min">
           <table 
             className="border-collapse text-xs w-full"
@@ -363,14 +363,14 @@ export function HabitGrid({
                         disabled={isProcessing}
                         className={`h-4 w-4 sm:h-5 sm:w-5 border rounded-sm flex items-center justify-center mx-auto transition-all cursor-pointer ${
                           isProcessing 
-                            ? 'opacity-50 cursor-wait pointer-events-none' 
+                            ? 'ring-2 ring-primary/40 cursor-wait pointer-events-none' 
                             : completed 
-                            ? 'bg-foreground border-foreground hover:opacity-90 active:scale-95' 
+                            ? 'bg-primary border-primary hover:opacity-90 active:scale-95' 
                             : 'border-border hover:border-muted-foreground bg-card hover:bg-muted active:scale-95'
                         }`}
                         aria-label={completed ? `Desmarcar ${habit.name} em ${day.dateStr}` : `Marcar ${habit.name} em ${day.dateStr}`}
                       >
-                        {completed && <Check className="h-3 w-3 sm:h-3 sm:w-3 text-background" />}
+                        {completed && <Check className="h-3 w-3 sm:h-3 sm:w-3 text-primary-foreground" />}
                       </button>
                     </td>
                   )
@@ -477,7 +477,7 @@ export function HabitGrid({
         </div>
 
         {/* Mobile Table - Single Week */}
-        <div className="overflow-x-auto overflow-y-visible pb-4 -mx-3 px-3 max-w-full">
+        <div className="overflow-x-auto overflow-y-visible pb-4 max-w-full">
           <table 
             className={cn("border-collapse text-xs w-full min-w-max", mobileWeekDays.length > 6 ? "text-[9px]" : "text-[10px]")}
             role="table"
@@ -580,14 +580,14 @@ export function HabitGrid({
                           disabled={isProcessing}
                           className={`h-5 w-5 border rounded-sm flex items-center justify-center mx-auto transition-all cursor-pointer ${
                             isProcessing 
-                              ? 'opacity-50 cursor-wait pointer-events-none' 
+                              ? 'ring-2 ring-primary/40 cursor-wait pointer-events-none' 
                               : completed 
-                              ? 'bg-foreground border-foreground hover:opacity-90 active:scale-95' 
+                              ? 'bg-primary border-primary hover:opacity-90 active:scale-95' 
                               : 'border-border hover:border-muted-foreground bg-card hover:bg-muted active:scale-95'
                           }`}
                           aria-label={completed ? `Desmarcar ${habit.name}` : `Marcar ${habit.name}`}
                         >
-                          {completed && <Check className="h-3 w-3 text-background" />}
+                          {completed && <Check className="h-3 w-3 text-primary-foreground" />}
                         </button>
                       </td>
                     )
@@ -670,7 +670,7 @@ export function HabitGrid({
       {/* Add Habit Button */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogTrigger asChild>
-          <Button variant="outline" className="w-full border-dashed bg-transparent">
+          <Button variant="outline" className="w-full border-dashed">
             <Plus className="mr-2 h-4 w-4" />
             Adicionar Habito
           </Button>

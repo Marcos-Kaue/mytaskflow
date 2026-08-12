@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Reminder } from '@/lib/types'
 import { cn } from '@/lib/utils'
+import { formatDeadline, formatLocalDate } from '@/lib/discipline'
 
 interface RemindersPanelProps {
   reminders: Reminder[]
@@ -27,10 +28,12 @@ export function RemindersPanel({
 }: RemindersPanelProps) {
   const [title, setTitle] = useState('')
   const [notes, setNotes] = useState('')
+  const [dueAt, setDueAt] = useState('')
   const [showForm, setShowForm] = useState(false)
 
   const pending = reminders.filter((item) => !item.is_completed)
   const completed = reminders.filter((item) => item.is_completed)
+  const today = formatLocalDate(new Date())
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -38,9 +41,11 @@ export function RemindersPanel({
     onCreateReminder({
       title: title.trim(),
       notes: notes.trim() || null,
+      due_at: dueAt || null,
     })
     setTitle('')
     setNotes('')
+    setDueAt('')
     setShowForm(false)
   }
 
@@ -57,7 +62,7 @@ export function RemindersPanel({
           </Badge>
         </div>
         <p className="text-xs text-muted-foreground">
-          Anotações rápidas. Não entram na pontuação do sistema.
+          Anotações rápidas, com data opcional. Não entram na pontuação.
         </p>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -85,6 +90,17 @@ export function RemindersPanel({
               placeholder="Observação (opcional)"
               rows={2}
             />
+            <div className="space-y-1">
+              <Input
+                type="date"
+                value={dueAt}
+                onChange={(e) => setDueAt(e.target.value)}
+                aria-label="Data do lembrete"
+              />
+              <p className="text-[11px] text-muted-foreground">
+                Data opcional. O aviso chega no dia e na véspera.
+              </p>
+            </div>
             <div className="flex gap-2">
               <Button type="submit" className="flex-1" size="sm">
                 Salvar
@@ -98,6 +114,7 @@ export function RemindersPanel({
                   setShowForm(false)
                   setTitle('')
                   setNotes('')
+                  setDueAt('')
                 }}
               >
                 Cancelar
@@ -131,6 +148,22 @@ export function RemindersPanel({
                 {reminder.notes && (
                   <div className="text-xs text-muted-foreground mt-0.5">
                     {reminder.notes}
+                  </div>
+                )}
+                {reminder.due_at && (
+                  <div className={cn(
+                    'text-[11px] mt-1 font-medium',
+                    reminder.due_at < today
+                      ? 'text-destructive'
+                      : reminder.due_at === today
+                        ? 'text-primary'
+                        : 'text-muted-foreground',
+                  )}>
+                    {reminder.due_at < today
+                      ? `Atrasado · ${formatDeadline(reminder.due_at)}`
+                      : reminder.due_at === today
+                        ? 'Hoje'
+                        : formatDeadline(reminder.due_at)}
                   </div>
                 )}
               </div>

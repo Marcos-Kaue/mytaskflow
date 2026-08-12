@@ -56,7 +56,7 @@ export function HabitForm({ onSubmit, editingHabit, onClose }: HabitFormProps) {
     editingHabit?.frequency || 'daily'
   )
   const [targetCount, setTargetCount] = useState(editingHabit?.target_count || 1)
-  const isMobile = useIsMobile()
+  const isMobile = useIsMobile() === true
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()

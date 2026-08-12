@@ -1,0 +1,18 @@
+{
+  "name": "MyTaskFlow",
+  "short_name": "MyTaskFlow",
+  "description": "Hábitos, lembretes e disciplina",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#7C3AED",
+  "theme_color": "#7C3AED",
+  "lang": "pt-BR",
+  "icons": [
+    {
+      "src": "/mytaskflow-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

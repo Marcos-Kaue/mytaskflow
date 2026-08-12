@@ -238,7 +238,12 @@ export async function fetchDisciplines(): Promise<Discipline[]> {
         .eq("user_id", USER_ID)
         .order("created_at", { ascending: false });
       throwIf(error);
-      return data || [];
+      return (data || []).map((item: Discipline) => ({
+        ...item,
+        deadline_at: item.deadline_at ?? null,
+        target_points: item.target_points ?? 0,
+        fulfilled_at: item.fulfilled_at ?? null,
+      }));
     },
     () => loadLocalDb().disciplines,
   );
@@ -539,6 +544,9 @@ export async function createDiscipline(
     penalty_value: discipline.penalty_value ?? 0,
     triggered_at: null,
     goal_id: discipline.goal_id ?? null,
+    deadline_at: discipline.deadline_at ?? null,
+    target_points: discipline.target_points ?? 0,
+    fulfilled_at: null,
     user_id: USER_ID,
   };
 
@@ -574,6 +582,8 @@ export async function updateDiscipline(
           description: discipline.description,
           penalty_type: discipline.penalty_type,
           penalty_value: discipline.penalty_value,
+          deadline_at: discipline.deadline_at,
+          target_points: discipline.target_points,
         })
         .eq("id", disciplineId);
       throwIf(error);
@@ -628,6 +638,28 @@ export async function triggerDiscipline(disciplineId: string): Promise<void> {
   );
 }
 
+export async function fulfillDiscipline(disciplineId: string): Promise<void> {
+  await withBackend(
+    async () => {
+      const supabase = createBrowserClient();
+      const { error } = await supabase
+        .from("disciplines")
+        .update({ fulfilled_at: new Date().toISOString() })
+        .eq("id", disciplineId);
+      throwIf(error);
+    },
+    () => {
+      const db = loadLocalDb();
+      db.disciplines = db.disciplines.map((item) =>
+        item.id === disciplineId
+          ? { ...item, fulfilled_at: new Date().toISOString() }
+          : item,
+      );
+      saveLocalDb(db);
+    },
+  );
+}
+
 export async function resetPoints(): Promise<void> {
   await updateStats({
     total_points: 0,
@@ -645,7 +677,10 @@ export async function fetchReminders(): Promise<Reminder[]> {
         .eq("user_id", USER_ID)
         .order("created_at", { ascending: false });
       throwIf(error);
-      return data || [];
+      return (data || []).map((item: Reminder) => ({
+        ...item,
+        due_at: item.due_at ?? null,
+      }));
     },
     () => loadLocalDb().reminders,
   );
@@ -655,6 +690,7 @@ export async function createReminder(reminder: Partial<Reminder>): Promise<void>
   const payload = {
     title: reminder.title,
     notes: reminder.notes ?? null,
+    due_at: reminder.due_at ?? null,
     is_completed: false,
     completed_at: null,
     user_id: USER_ID,

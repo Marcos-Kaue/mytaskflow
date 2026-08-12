@@ -12,6 +12,12 @@ export const metadata: Metadata = {
   title: 'MyTaskFlow - Rastreador de Hábitos',
   description: 'Acompanhe seus hábitos diários, visualize seu progresso e conquiste recompensas',
   generator: 'MyTaskFlow',
+  manifest: '/manifest.webmanifest',
+  appleWebApp: {
+    capable: true,
+    title: 'MyTaskFlow',
+    statusBarStyle: 'default',
+  },
   icons: {
     icon: [
       { url: '/mytaskflow-icon.svg', type: 'image/svg+xml' },
@@ -28,8 +34,8 @@ export const viewport = {
   maximumScale: 5,
   userScalable: true,
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
-    { media: '(prefers-color-scheme: dark)', color: '#000000' },
+    { media: '(prefers-color-scheme: light)', color: '#7C3AED' },
+    { media: '(prefers-color-scheme: dark)', color: '#7C3AED' },
   ],
 }
 

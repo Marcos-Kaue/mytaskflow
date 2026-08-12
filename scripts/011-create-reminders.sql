@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS reminders (
   user_id text NOT NULL,
   title text NOT NULL,
   notes text,
+  due_at date,
   is_completed boolean DEFAULT false,
   completed_at timestamptz,
   created_at timestamptz DEFAULT now()

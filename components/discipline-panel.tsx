@@ -31,18 +31,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Discipline } from '@/lib/types'
+import { Discipline, UserStats } from '@/lib/types'
 import { cn } from '@/lib/utils'
+import { defaultDeadlineDate, formatDeadline, getDisciplineProgress, isDisciplineOpen } from '@/lib/discipline'
 
 interface DisciplinePanelProps {
   disciplines: Discipline[]
+  stats: UserStats | null
   onCreateDiscipline: (discipline: Partial<Discipline>) => void
   onUpdateDiscipline: (disciplineId: string, discipline: Partial<Discipline>) => void
   onDeleteDiscipline: (disciplineId: string) => void
   onTriggerDiscipline: (disciplineId: string) => void
 }
 
-export function DisciplinePanel({ disciplines, onCreateDiscipline, onUpdateDiscipline, onDeleteDiscipline, onTriggerDiscipline }: DisciplinePanelProps) {
+export function DisciplinePanel({ disciplines, stats, onCreateDiscipline, onUpdateDiscipline, onDeleteDiscipline, onTriggerDiscipline }: DisciplinePanelProps) {
   const [open, setOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
   const [editingDiscipline, setEditingDiscipline] = useState<Discipline | null>(null)
@@ -50,6 +52,8 @@ export function DisciplinePanel({ disciplines, onCreateDiscipline, onUpdateDisci
   const [description, setDescription] = useState('')
   const [penaltyType, setPenaltyType] = useState<'points' | 'streak_reset' | 'custom'>('points')
   const [penaltyValue, setPenaltyValue] = useState(50)
+  const [deadlineAt, setDeadlineAt] = useState(defaultDeadlineDate())
+  const [targetPoints, setTargetPoints] = useState(100)
   const [isExpanded, setIsExpanded] = useState(false)
   const [triggerConfirmId, setTriggerConfirmId] = useState<string | null>(null)
 
@@ -57,7 +61,7 @@ export function DisciplinePanel({ disciplines, onCreateDiscipline, onUpdateDisci
     e.preventDefault()
     if (!name.trim()) return
     
-    console.log('Criando disciplina:', { name, description, penaltyType, penaltyValue })
+    console.log('Criando disciplina:', { name, description, penaltyType, penaltyValue, deadlineAt, targetPoints })
     
     if (editingDiscipline) {
       onUpdateDiscipline(editingDiscipline.id, {
@@ -65,6 +69,8 @@ export function DisciplinePanel({ disciplines, onCreateDiscipline, onUpdateDisci
         description: description.trim() || null,
         penalty_type: penaltyType,
         penalty_value: penaltyValue,
+        deadline_at: deadlineAt || null,
+        target_points: targetPoints,
       })
     } else {
       onCreateDiscipline({
@@ -72,6 +78,8 @@ export function DisciplinePanel({ disciplines, onCreateDiscipline, onUpdateDisci
         description: description.trim() || null,
         penalty_type: penaltyType,
         penalty_value: penaltyValue,
+        deadline_at: deadlineAt || null,
+        target_points: targetPoints,
       })
     }
     
@@ -86,6 +94,8 @@ export function DisciplinePanel({ disciplines, onCreateDiscipline, onUpdateDisci
     setDescription(discipline.description || '')
     setPenaltyType(discipline.penalty_type as 'points' | 'streak_reset' | 'custom')
     setPenaltyValue(discipline.penalty_value)
+    setDeadlineAt(discipline.deadline_at || defaultDeadlineDate())
+    setTargetPoints(discipline.target_points || 100)
     setEditOpen(true)
   }
 
@@ -100,6 +110,8 @@ export function DisciplinePanel({ disciplines, onCreateDiscipline, onUpdateDisci
     setDescription('')
     setPenaltyType('points')
     setPenaltyValue(50)
+    setDeadlineAt(defaultDeadlineDate())
+    setTargetPoints(100)
     setEditingDiscipline(null)
   }
 
@@ -126,8 +138,9 @@ export function DisciplinePanel({ disciplines, onCreateDiscipline, onUpdateDisci
     })
   }
 
-  const activeDisciplines = disciplines.filter(d => !d.triggered_at || d.triggered_at === d.created_at)
+  const activeDisciplines = disciplines.filter(isDisciplineOpen)
   const triggeredDisciplines = disciplines.filter(d => d.triggered_at && d.triggered_at !== d.created_at)
+  const fulfilledDisciplines = disciplines.filter(d => Boolean(d.fulfilled_at))
 
   const formContent = (isEdit: boolean) => (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -181,6 +194,32 @@ export function DisciplinePanel({ disciplines, onCreateDiscipline, onUpdateDisci
         </div>
       )}
 
+      <div className="space-y-2">
+        <Label htmlFor={isEdit ? "edit-deadline" : "deadline"}>Prazo</Label>
+        <Input
+          id={isEdit ? "edit-deadline" : "deadline"}
+          type="date"
+          value={deadlineAt}
+          onChange={(e) => setDeadlineAt(e.target.value)}
+          required
+        />
+        <p className="text-xs text-muted-foreground">
+          Se a pontuação não for cumprida até esta data, a disciplina é aplicada automaticamente.
+        </p>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor={isEdit ? "edit-target-points" : "target-points"}>Pontuação a cumprir</Label>
+        <Input
+          id={isEdit ? "edit-target-points" : "target-points"}
+          type="number"
+          min={0}
+          value={targetPoints}
+          onChange={(e) => setTargetPoints(Number(e.target.value))}
+          required
+        />
+      </div>
+
       <Button type="submit" className="w-full">
         {isEdit ? 'Atualizar Disciplina' : 'Criar Disciplina'}
       </Button>
@@ -216,7 +255,7 @@ export function DisciplinePanel({ disciplines, onCreateDiscipline, onUpdateDisci
 
         {isExpanded && (
           <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-6">
-            {activeDisciplines.length === 0 && triggeredDisciplines.length === 0 ? (
+            {activeDisciplines.length === 0 && triggeredDisciplines.length === 0 && fulfilledDisciplines.length === 0 ? (
               <p className="py-4 text-center text-sm text-muted-foreground">
                 Configure disciplinas para se manter motivado!
               </p>
@@ -225,7 +264,9 @@ export function DisciplinePanel({ disciplines, onCreateDiscipline, onUpdateDisci
                 {activeDisciplines.length > 0 && (
                   <div className="space-y-2">
                     <p className="text-xs font-medium text-destructive">Penalidades Ativas</p>
-                    {activeDisciplines.map((discipline) => (
+                    {activeDisciplines.map((discipline) => {
+                      const progress = getDisciplineProgress(discipline, stats?.total_points || 0)
+                      return (
                       <div 
                         key={discipline.id}
                         className="rounded-lg border border-destructive/30 bg-destructive/5 p-2.5 sm:p-3"
@@ -239,6 +280,24 @@ export function DisciplinePanel({ disciplines, onCreateDiscipline, onUpdateDisci
                             <p className="text-[10px] sm:text-xs text-destructive font-medium mt-1">
                               {getPenaltyLabel(discipline.penalty_type, discipline.penalty_value)}
                             </p>
+                            <div className="mt-2 rounded-md bg-background p-2 space-y-0.5">
+                              <p className="text-[10px] sm:text-xs text-muted-foreground">
+                                Prazo: <span className="font-medium text-foreground">{formatDeadline(discipline.deadline_at)}</span>
+                              </p>
+                              <p className="text-[10px] sm:text-xs text-muted-foreground">
+                                Pontuação: <span className="font-medium text-foreground">{progress.current}/{progress.target} pts</span>
+                              </p>
+                              <p className={cn(
+                                'text-[10px] sm:text-xs font-medium',
+                                progress.metTarget ? 'text-primary' : 'text-destructive',
+                              )}>
+                                {progress.metTarget
+                                  ? 'Meta atingida'
+                                  : progress.daysLeft !== null && progress.daysLeft >= 0
+                                    ? `Faltam ${progress.remainingPoints} pts · ${progress.daysLeft} dia(s)`
+                                    : `Faltam ${progress.remainingPoints} pts`}
+                              </p>
+                            </div>
                           </div>
                           <div className="flex gap-0.5 sm:gap-1 flex-shrink-0">
                             <button
@@ -272,7 +331,28 @@ export function DisciplinePanel({ disciplines, onCreateDiscipline, onUpdateDisci
                           Aplicar Penalidade
                         </Button>
                       </div>
-                    ))}
+                      )
+                    })}
+                  </div>
+                )}
+
+                {fulfilledDisciplines.length > 0 && (
+                  <div className="border-t pt-3">
+                    <p className="mb-2 text-xs font-medium text-muted-foreground">Cumpridas no prazo</p>
+                    <div className="space-y-2">
+                      {fulfilledDisciplines.slice(0, 3).map((discipline) => (
+                        <div 
+                          key={discipline.id}
+                          className="flex items-center gap-2 rounded-lg bg-primary/5 p-2"
+                        >
+                          <AlertTriangle className="h-3 w-3 text-primary flex-shrink-0" />
+                          <span className="text-sm">{discipline.name}</span>
+                          <span className="ml-auto text-[10px] text-muted-foreground">
+                            {formatDate(discipline.fulfilled_at || '')}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
 
@@ -310,7 +390,7 @@ export function DisciplinePanel({ disciplines, onCreateDiscipline, onUpdateDisci
           <DialogHeader>
             <DialogTitle>Criar Disciplina</DialogTitle>
             <DialogDescription>
-              Configure uma penalidade para manter a disciplina e o foco nos seus objetivos.
+              Defina o prazo e a pontuação. Se não cumprir até a data, a disciplina é aplicada.
             </DialogDescription>
           </DialogHeader>
           {formContent(false)}

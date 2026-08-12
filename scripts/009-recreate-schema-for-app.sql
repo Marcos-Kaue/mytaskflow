@@ -61,6 +61,9 @@ CREATE TABLE disciplines (
   penalty_value integer DEFAULT 0,
   triggered_at timestamptz,
   goal_id uuid,
+  deadline_at date,
+  target_points integer DEFAULT 0,
+  fulfilled_at timestamptz,
   created_at timestamptz DEFAULT now()
 );
 

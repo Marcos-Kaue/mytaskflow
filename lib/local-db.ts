@@ -56,8 +56,16 @@ export function loadLocalDb(): LocalDatabase {
       completions: parsed.completions ?? [],
       stats: parsed.stats ?? fallback.stats,
       rewards: parsed.rewards ?? [],
-      disciplines: parsed.disciplines ?? [],
-      reminders: parsed.reminders ?? [],
+      disciplines: (parsed.disciplines ?? []).map((item) => ({
+        ...item,
+        deadline_at: item.deadline_at ?? null,
+        target_points: item.target_points ?? 0,
+        fulfilled_at: item.fulfilled_at ?? null,
+      })),
+      reminders: (parsed.reminders ?? []).map((item) => ({
+        ...item,
+        due_at: item.due_at ?? null,
+      })),
     };
   } catch {
     return emptyDb();
