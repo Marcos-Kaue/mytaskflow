@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Logo } from '@/components/logo'
 import { RemindersPanel } from '@/components/reminders-panel'
+import { UserMenu } from '@/components/user-menu'
 import { 
   Dialog, 
   DialogContent, 
@@ -389,6 +390,7 @@ export function MobilePage({
                   <h1 className="text-lg font-bold truncate">MyTaskFlow</h1>
                 </div>
                 <div className="flex items-center gap-2">
+                  <UserMenu compact />
                   <Badge variant="secondary" className="text-xs">
                     {MONTHS[selectedMonth]} {selectedYear}
                   </Badge>

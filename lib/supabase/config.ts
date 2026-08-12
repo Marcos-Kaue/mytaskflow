@@ -1,4 +1,4 @@
-export const USER_ID = 'demo-user-001'
+export const LOCAL_USER_ID = 'local-user'
 
 export function isSupabaseConfigured(): boolean {
   return Boolean(

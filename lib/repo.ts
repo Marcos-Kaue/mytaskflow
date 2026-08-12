@@ -6,7 +6,7 @@ import {
   Reward,
   UserStats,
 } from "@/lib/types";
-import { USER_ID, isSupabaseConfigured } from "@/lib/supabase/config";
+import { LOCAL_USER_ID, isSupabaseConfigured } from "@/lib/supabase/config";
 import { createBrowserClient } from "@/lib/supabase/client";
 import {
   createId,
@@ -115,10 +115,9 @@ async function withBackend<T>(
     const typed = error as { code?: string; message?: string };
 
     if (isPermissionError(typed)) {
-      markLocalFallback(
-        "O banco bloqueou escrita (RLS). Usando dados locais por enquanto. No Supabase, execute scripts/010-unlock-write-access.sql",
+      throw new Error(
+        "Sem permissão no banco. Faça login novamente e execute scripts/014-secure-rls-by-user.sql no Supabase se ainda não rodou.",
       );
-      return localOp();
     }
 
     if (isSchemaError(typed)) {
@@ -141,6 +140,32 @@ async function withBackend<T>(
   }
 }
 
+
+let cachedUserId: string | null = null;
+
+async function requireUserId(): Promise<string> {
+  if (!isSupabaseConfigured()) {
+    return LOCAL_USER_ID;
+  }
+
+  if (forcedLocal && cachedUserId) {
+    return cachedUserId;
+  }
+
+  const supabase = createBrowserClient();
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
+
+  if (error || !user) {
+    throw new Error("Faça login para continuar.");
+  }
+
+  cachedUserId = user.id;
+  return user.id;
+}
+
 function throwIf(error: { message?: string } | null) {
   if (error) {
     throw error;
@@ -148,19 +173,21 @@ function throwIf(error: { message?: string } | null) {
 }
 
 export async function fetchHabits(): Promise<Habit[]> {
+  const userId = await requireUserId();
+
   return withBackend(
     async () => {
       const supabase = createBrowserClient();
       const { data, error } = await supabase
         .from("habits")
         .select("*")
-        .eq("user_id", USER_ID)
+        .eq("user_id", userId)
         .eq("is_active", true)
         .order("created_at", { ascending: true });
       throwIf(error);
       return data || [];
     },
-    () => loadLocalDb().habits.filter((habit) => habit.is_active),
+    () => loadLocalDb(userId).habits.filter((habit) => habit.is_active),
   );
 }
 
@@ -168,6 +195,8 @@ export async function fetchCompletions(
   year: number,
   month: number,
 ): Promise<HabitCompletion[]> {
+  const userId = await requireUserId();
+
   return withBackend(
     async () => {
       const supabase = createBrowserClient();
@@ -178,7 +207,7 @@ export async function fetchCompletions(
       const { data, error } = await supabase
         .from("habit_completions")
         .select("*")
-        .eq("user_id", USER_ID)
+        .eq("user_id", userId)
         .gte("completed_at", startOfMonth.toISOString())
         .lte("completed_at", endOfMonth.toISOString())
         .order("completed_at", { ascending: false });
@@ -188,7 +217,7 @@ export async function fetchCompletions(
     () => {
       const start = new Date(year, month, 1).getTime();
       const end = new Date(year, month + 1, 0, 23, 59, 59, 999).getTime();
-      return loadLocalDb().completions.filter((item) => {
+      return loadLocalDb(userId).completions.filter((item) => {
         const time = new Date(item.completed_at).getTime();
         return time >= start && time <= end;
       });
@@ -197,45 +226,51 @@ export async function fetchCompletions(
 }
 
 export async function fetchStats(): Promise<UserStats | null> {
+  const userId = await requireUserId();
+
   return withBackend(
     async () => {
       const supabase = createBrowserClient();
       const { data, error } = await supabase
         .from("user_stats")
         .select("*")
-        .eq("user_id", USER_ID)
+        .eq("user_id", userId)
         .single();
       if (error && error.code !== "PGRST116") throw error;
       return data;
     },
-    () => loadLocalDb().stats,
+    () => loadLocalDb(userId).stats,
   );
 }
 
 export async function fetchRewards(): Promise<Reward[]> {
+  const userId = await requireUserId();
+
   return withBackend(
     async () => {
       const supabase = createBrowserClient();
       const { data, error } = await supabase
         .from("rewards")
         .select("*")
-        .eq("user_id", USER_ID)
+        .eq("user_id", userId)
         .order("created_at", { ascending: false });
       throwIf(error);
       return data || [];
     },
-    () => loadLocalDb().rewards,
+    () => loadLocalDb(userId).rewards,
   );
 }
 
 export async function fetchDisciplines(): Promise<Discipline[]> {
+  const userId = await requireUserId();
+
   return withBackend(
     async () => {
       const supabase = createBrowserClient();
       const { data, error } = await supabase
         .from("disciplines")
         .select("*")
-        .eq("user_id", USER_ID)
+        .eq("user_id", userId)
         .order("created_at", { ascending: false });
       throwIf(error);
       return (data || []).map((item: Discipline) => ({
@@ -245,23 +280,25 @@ export async function fetchDisciplines(): Promise<Discipline[]> {
         fulfilled_at: item.fulfilled_at ?? null,
       }));
     },
-    () => loadLocalDb().disciplines,
+    () => loadLocalDb(userId).disciplines,
   );
 }
 
 export async function ensureUserStats(): Promise<void> {
+  const userId = await requireUserId();
+
   await withBackend(
     async () => {
       const supabase = createBrowserClient();
       const { data } = await supabase
         .from("user_stats")
         .select("*")
-        .eq("user_id", USER_ID)
+        .eq("user_id", userId)
         .single();
 
       if (!data) {
         const { error } = await supabase.from("user_stats").insert({
-          user_id: USER_ID,
+          user_id: userId,
           total_points: 0,
           current_streak: 0,
           longest_streak: 0,
@@ -272,15 +309,17 @@ export async function ensureUserStats(): Promise<void> {
       }
     },
     () => {
-      const db = loadLocalDb();
+      const db = loadLocalDb(userId);
       if (!db.stats) {
-        saveLocalDb(updateLocalStats(db, {}));
+        saveLocalDb(updateLocalStats(db, {}), userId);
       }
     },
   );
 }
 
 export async function createHabit(habit: Partial<Habit>): Promise<void> {
+  const userId = await requireUserId();
+
   const payload = {
     name: habit.name,
     description: habit.description ?? null,
@@ -289,7 +328,7 @@ export async function createHabit(habit: Partial<Habit>): Promise<void> {
     frequency: habit.frequency || "daily",
     target_count: habit.target_count || 1,
     is_active: true,
-    user_id: USER_ID,
+    user_id: userId,
   };
 
   await withBackend(
@@ -299,7 +338,7 @@ export async function createHabit(habit: Partial<Habit>): Promise<void> {
       throwIf(error);
     },
     () => {
-      const db = loadLocalDb();
+      const db = loadLocalDb(userId);
       db.habits.push({
         id: createId(),
         created_at: new Date().toISOString(),
@@ -308,12 +347,14 @@ export async function createHabit(habit: Partial<Habit>): Promise<void> {
       updateLocalStats(db, {
         total_habits: (db.stats?.total_habits || 0) + 1,
       });
-      saveLocalDb(db);
+      saveLocalDb(db, userId);
     },
   );
 }
 
 export async function updateHabit(habit: Partial<Habit>): Promise<void> {
+  const userId = await requireUserId();
+
   if (!habit.id) return;
 
   await withBackend(
@@ -322,38 +363,42 @@ export async function updateHabit(habit: Partial<Habit>): Promise<void> {
       const { error } = await supabase
         .from("habits")
         .update({ name: habit.name })
-        .eq("id", habit.id);
+        .eq("id", habit.id)
+        .eq("user_id", userId);
       throwIf(error);
     },
     () => {
-      const db = loadLocalDb();
+      const db = loadLocalDb(userId);
       db.habits = db.habits.map((item) =>
         item.id === habit.id ? { ...item, name: habit.name || item.name } : item,
       );
-      saveLocalDb(db);
+      saveLocalDb(db, userId);
     },
   );
 }
 
 export async function deleteHabit(habitId: string): Promise<void> {
+  const userId = await requireUserId();
+
   await withBackend(
     async () => {
       const supabase = createBrowserClient();
       const { error } = await supabase
         .from("habits")
         .update({ is_active: false })
-        .eq("id", habitId);
+        .eq("id", habitId)
+        .eq("user_id", userId);
       throwIf(error);
     },
     () => {
-      const db = loadLocalDb();
+      const db = loadLocalDb(userId);
       db.habits = db.habits.map((item) =>
         item.id === habitId ? { ...item, is_active: false } : item,
       );
       updateLocalStats(db, {
         total_habits: Math.max((db.stats?.total_habits || 1) - 1, 0),
       });
-      saveLocalDb(db);
+      saveLocalDb(db, userId);
     },
   );
 }
@@ -362,12 +407,14 @@ export async function insertCompletion(
   habitId: string,
   completedAt: string,
 ): Promise<void> {
+  const userId = await requireUserId();
+
   await withBackend(
     async () => {
       const supabase = createBrowserClient();
       const { error } = await supabase.from("habit_completions").insert({
         habit_id: habitId,
-        user_id: USER_ID,
+        user_id: userId,
         completed_at: completedAt,
       });
       if (error && (error.code === "23505" || error.message.includes("duplicate"))) {
@@ -376,7 +423,7 @@ export async function insertCompletion(
       throwIf(error);
     },
     () => {
-      const db = loadLocalDb();
+      const db = loadLocalDb(userId);
       const day = completedAt.split("T")[0];
       const exists = db.completions.some(
         (item) =>
@@ -387,16 +434,18 @@ export async function insertCompletion(
       db.completions.push({
         id: createId(),
         habit_id: habitId,
-        user_id: USER_ID,
+        user_id: userId,
         completed_at: completedAt,
         notes: null,
       });
-      saveLocalDb(db);
+      saveLocalDb(db, userId);
     },
   );
 }
 
 export async function deleteCompletions(ids: string[]): Promise<void> {
+  const userId = await requireUserId();
+
   await withBackend(
     async () => {
       const supabase = createBrowserClient();
@@ -409,14 +458,16 @@ export async function deleteCompletions(ids: string[]): Promise<void> {
       }
     },
     () => {
-      const db = loadLocalDb();
+      const db = loadLocalDb(userId);
       db.completions = db.completions.filter((item) => !ids.includes(item.id));
-      saveLocalDb(db);
+      saveLocalDb(db, userId);
     },
   );
 }
 
 export async function updateStats(patch: Partial<UserStats>): Promise<void> {
+  const userId = await requireUserId();
+
   await withBackend(
     async () => {
       const supabase = createBrowserClient();
@@ -426,18 +477,20 @@ export async function updateStats(patch: Partial<UserStats>): Promise<void> {
           ...patch,
           updated_at: new Date().toISOString(),
         })
-        .eq("user_id", USER_ID);
+        .eq("user_id", userId);
       throwIf(error);
     },
     () => {
-      const db = loadLocalDb();
+      const db = loadLocalDb(userId);
       updateLocalStats(db, patch);
-      saveLocalDb(db);
+      saveLocalDb(db, userId);
     },
   );
 }
 
 export async function createReward(reward: Partial<Reward>): Promise<void> {
+  const userId = await requireUserId();
+
   const payload = {
     name: reward.name,
     description: reward.description ?? null,
@@ -445,7 +498,7 @@ export async function createReward(reward: Partial<Reward>): Promise<void> {
     points_required: reward.points_required ?? 100,
     is_claimed: false,
     claimed_at: null,
-    user_id: USER_ID,
+    user_id: userId,
   };
 
   await withBackend(
@@ -455,13 +508,13 @@ export async function createReward(reward: Partial<Reward>): Promise<void> {
       throwIf(error);
     },
     () => {
-      const db = loadLocalDb();
+      const db = loadLocalDb(userId);
       db.rewards.unshift({
         id: createId(),
         created_at: new Date().toISOString(),
         ...payload,
       } as Reward);
-      saveLocalDb(db);
+      saveLocalDb(db, userId);
     },
   );
 }
@@ -470,6 +523,8 @@ export async function updateReward(
   rewardId: string,
   reward: Partial<Reward>,
 ): Promise<void> {
+  const userId = await requireUserId();
+
   await withBackend(
     async () => {
       const supabase = createBrowserClient();
@@ -485,16 +540,18 @@ export async function updateReward(
       throwIf(error);
     },
     () => {
-      const db = loadLocalDb();
+      const db = loadLocalDb(userId);
       db.rewards = db.rewards.map((item) =>
         item.id === rewardId ? { ...item, ...reward } : item,
       );
-      saveLocalDb(db);
+      saveLocalDb(db, userId);
     },
   );
 }
 
 export async function deleteReward(rewardId: string): Promise<void> {
+  const userId = await requireUserId();
+
   await withBackend(
     async () => {
       const supabase = createBrowserClient();
@@ -502,14 +559,16 @@ export async function deleteReward(rewardId: string): Promise<void> {
       throwIf(error);
     },
     () => {
-      const db = loadLocalDb();
+      const db = loadLocalDb(userId);
       db.rewards = db.rewards.filter((item) => item.id !== rewardId);
-      saveLocalDb(db);
+      saveLocalDb(db, userId);
     },
   );
 }
 
 export async function claimReward(rewardId: string): Promise<void> {
+  const userId = await requireUserId();
+
   await withBackend(
     async () => {
       const supabase = createBrowserClient();
@@ -523,13 +582,13 @@ export async function claimReward(rewardId: string): Promise<void> {
       throwIf(error);
     },
     () => {
-      const db = loadLocalDb();
+      const db = loadLocalDb(userId);
       db.rewards = db.rewards.map((item) =>
         item.id === rewardId
           ? { ...item, is_claimed: true, claimed_at: new Date().toISOString() }
           : item,
       );
-      saveLocalDb(db);
+      saveLocalDb(db, userId);
     },
   );
 }
@@ -537,6 +596,8 @@ export async function claimReward(rewardId: string): Promise<void> {
 export async function createDiscipline(
   discipline: Partial<Discipline>,
 ): Promise<void> {
+  const userId = await requireUserId();
+
   const payload = {
     name: discipline.name,
     description: discipline.description ?? null,
@@ -547,7 +608,7 @@ export async function createDiscipline(
     deadline_at: discipline.deadline_at ?? null,
     target_points: discipline.target_points ?? 0,
     fulfilled_at: null,
-    user_id: USER_ID,
+    user_id: userId,
   };
 
   await withBackend(
@@ -557,13 +618,13 @@ export async function createDiscipline(
       throwIf(error);
     },
     () => {
-      const db = loadLocalDb();
+      const db = loadLocalDb(userId);
       db.disciplines.unshift({
         id: createId(),
         created_at: new Date().toISOString(),
         ...payload,
       } as Discipline);
-      saveLocalDb(db);
+      saveLocalDb(db, userId);
     },
   );
 }
@@ -572,6 +633,8 @@ export async function updateDiscipline(
   disciplineId: string,
   discipline: Partial<Discipline>,
 ): Promise<void> {
+  const userId = await requireUserId();
+
   await withBackend(
     async () => {
       const supabase = createBrowserClient();
@@ -589,16 +652,18 @@ export async function updateDiscipline(
       throwIf(error);
     },
     () => {
-      const db = loadLocalDb();
+      const db = loadLocalDb(userId);
       db.disciplines = db.disciplines.map((item) =>
         item.id === disciplineId ? { ...item, ...discipline } : item,
       );
-      saveLocalDb(db);
+      saveLocalDb(db, userId);
     },
   );
 }
 
 export async function deleteDiscipline(disciplineId: string): Promise<void> {
+  const userId = await requireUserId();
+
   await withBackend(
     async () => {
       const supabase = createBrowserClient();
@@ -609,14 +674,16 @@ export async function deleteDiscipline(disciplineId: string): Promise<void> {
       throwIf(error);
     },
     () => {
-      const db = loadLocalDb();
+      const db = loadLocalDb(userId);
       db.disciplines = db.disciplines.filter((item) => item.id !== disciplineId);
-      saveLocalDb(db);
+      saveLocalDb(db, userId);
     },
   );
 }
 
 export async function triggerDiscipline(disciplineId: string): Promise<void> {
+  const userId = await requireUserId();
+
   await withBackend(
     async () => {
       const supabase = createBrowserClient();
@@ -627,18 +694,20 @@ export async function triggerDiscipline(disciplineId: string): Promise<void> {
       throwIf(error);
     },
     () => {
-      const db = loadLocalDb();
+      const db = loadLocalDb(userId);
       db.disciplines = db.disciplines.map((item) =>
         item.id === disciplineId
           ? { ...item, triggered_at: new Date().toISOString() }
           : item,
       );
-      saveLocalDb(db);
+      saveLocalDb(db, userId);
     },
   );
 }
 
 export async function fulfillDiscipline(disciplineId: string): Promise<void> {
+  const userId = await requireUserId();
+
   await withBackend(
     async () => {
       const supabase = createBrowserClient();
@@ -649,13 +718,13 @@ export async function fulfillDiscipline(disciplineId: string): Promise<void> {
       throwIf(error);
     },
     () => {
-      const db = loadLocalDb();
+      const db = loadLocalDb(userId);
       db.disciplines = db.disciplines.map((item) =>
         item.id === disciplineId
           ? { ...item, fulfilled_at: new Date().toISOString() }
           : item,
       );
-      saveLocalDb(db);
+      saveLocalDb(db, userId);
     },
   );
 }
@@ -668,13 +737,15 @@ export async function resetPoints(): Promise<void> {
 }
 
 export async function fetchReminders(): Promise<Reminder[]> {
+  const userId = await requireUserId();
+
   return withBackend(
     async () => {
       const supabase = createBrowserClient();
       const { data, error } = await supabase
         .from("reminders")
         .select("*")
-        .eq("user_id", USER_ID)
+        .eq("user_id", userId)
         .order("created_at", { ascending: false });
       throwIf(error);
       return (data || []).map((item: Reminder) => ({
@@ -682,18 +753,20 @@ export async function fetchReminders(): Promise<Reminder[]> {
         due_at: item.due_at ?? null,
       }));
     },
-    () => loadLocalDb().reminders,
+    () => loadLocalDb(userId).reminders,
   );
 }
 
 export async function createReminder(reminder: Partial<Reminder>): Promise<void> {
+  const userId = await requireUserId();
+
   const payload = {
     title: reminder.title,
     notes: reminder.notes ?? null,
     due_at: reminder.due_at ?? null,
     is_completed: false,
     completed_at: null,
-    user_id: USER_ID,
+    user_id: userId,
   };
 
   await withBackend(
@@ -703,18 +776,20 @@ export async function createReminder(reminder: Partial<Reminder>): Promise<void>
       throwIf(error);
     },
     () => {
-      const db = loadLocalDb();
+      const db = loadLocalDb(userId);
       db.reminders.unshift({
         id: createId(),
         created_at: new Date().toISOString(),
         ...payload,
       } as Reminder);
-      saveLocalDb(db);
+      saveLocalDb(db, userId);
     },
   );
 }
 
 export async function completeReminder(reminderId: string): Promise<void> {
+  const userId = await requireUserId();
+
   await withBackend(
     async () => {
       const supabase = createBrowserClient();
@@ -728,7 +803,7 @@ export async function completeReminder(reminderId: string): Promise<void> {
       throwIf(error);
     },
     () => {
-      const db = loadLocalDb();
+      const db = loadLocalDb(userId);
       db.reminders = db.reminders.map((item) =>
         item.id === reminderId
           ? {
@@ -738,12 +813,14 @@ export async function completeReminder(reminderId: string): Promise<void> {
             }
           : item,
       );
-      saveLocalDb(db);
+      saveLocalDb(db, userId);
     },
   );
 }
 
 export async function uncompleteReminder(reminderId: string): Promise<void> {
+  const userId = await requireUserId();
+
   await withBackend(
     async () => {
       const supabase = createBrowserClient();
@@ -757,18 +834,20 @@ export async function uncompleteReminder(reminderId: string): Promise<void> {
       throwIf(error);
     },
     () => {
-      const db = loadLocalDb();
+      const db = loadLocalDb(userId);
       db.reminders = db.reminders.map((item) =>
         item.id === reminderId
           ? { ...item, is_completed: false, completed_at: null }
           : item,
       );
-      saveLocalDb(db);
+      saveLocalDb(db, userId);
     },
   );
 }
 
 export async function deleteReminder(reminderId: string): Promise<void> {
+  const userId = await requireUserId();
+
   await withBackend(
     async () => {
       const supabase = createBrowserClient();
@@ -779,9 +858,9 @@ export async function deleteReminder(reminderId: string): Promise<void> {
       throwIf(error);
     },
     () => {
-      const db = loadLocalDb();
+      const db = loadLocalDb(userId);
       db.reminders = db.reminders.filter((item) => item.id !== reminderId);
-      saveLocalDb(db);
+      saveLocalDb(db, userId);
     },
   );
 }

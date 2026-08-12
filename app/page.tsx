@@ -13,6 +13,7 @@ import { Logo } from '@/components/logo'
 import { StorageBanner } from '@/components/storage-banner'
 import { DateAlerts } from '@/components/date-alerts'
 import { RemindersPanel } from '@/components/reminders-panel'
+import { UserMenu } from '@/components/user-menu'
 import { Button } from '@/components/ui/button'
 import { Habit, HabitCompletion, UserStats, Reward, Discipline, Reminder } from '@/lib/types'
 import { Flame, RotateCcw, Target, Zap } from 'lucide-react'
@@ -477,13 +478,16 @@ export default function HomePage() {
       <DateAlerts disciplines={disciplines} reminders={reminders} />
       <header className="sticky top-0 z-40 bg-gradient-to-br from-primary to-accent text-primary-foreground shadow-lg">
         <div className="mx-auto max-w-5xl px-3 sm:px-4 py-4 sm:py-5">
-          <div className="flex items-center justify-center gap-3 mb-3">
+          <div className="flex items-center justify-center gap-3 mb-3 relative">
             <Logo size={44} className="drop-shadow-lg" />
             <div className="text-left">
               <p className="text-base sm:text-lg font-bold tracking-wide">MyTaskFlow</p>
               <p className="text-xs sm:text-sm opacity-90">
                 Organize seus hábitos e conquiste seus objetivos
               </p>
+            </div>
+            <div className="absolute right-0 top-0">
+              <UserMenu />
             </div>
           </div>
 

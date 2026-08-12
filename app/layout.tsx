@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { Toaster } from '@/components/ui/toaster'
+import { AuthProvider } from '@/components/auth-provider'
 import './globals.css'
 
 const _geist = Geist({ subsets: ["latin"] });
@@ -50,7 +51,7 @@ export default function RootLayout({
     <html lang="pt-BR" className="h-full">
       <body className="font-sans antialiased overflow-x-hidden h-full">
         <div className="min-h-full flex flex-col">
-          {children}
+          <AuthProvider>{children}</AuthProvider>
         </div>
         <Toaster />
         <Analytics />

@@ -6,9 +6,9 @@ import {
   Reward,
   UserStats,
 } from "@/lib/types";
-import { USER_ID } from "@/lib/supabase/config";
+import { LOCAL_USER_ID } from "@/lib/supabase/config";
 
-const STORAGE_KEY = "mytaskflow-db-v1";
+const STORAGE_PREFIX = "mytaskflow-db-v1";
 
 export type LocalDatabase = {
   habits: Habit[];
@@ -19,13 +19,17 @@ export type LocalDatabase = {
   reminders: Reminder[];
 };
 
-function emptyDb(): LocalDatabase {
+function storageKey(userId: string): string {
+  return `${STORAGE_PREFIX}:${userId}`;
+}
+
+function emptyDb(userId: string = LOCAL_USER_ID): LocalDatabase {
   return {
     habits: [],
     completions: [],
     stats: {
       id: "local-stats",
-      user_id: USER_ID,
+      user_id: userId,
       total_points: 0,
       current_streak: 0,
       longest_streak: 0,
@@ -43,14 +47,16 @@ function canUseStorage(): boolean {
   return typeof window !== "undefined" && typeof localStorage !== "undefined";
 }
 
-export function loadLocalDb(): LocalDatabase {
-  if (!canUseStorage()) return emptyDb();
+export function loadLocalDb(userId: string = LOCAL_USER_ID): LocalDatabase {
+  if (!canUseStorage()) return emptyDb(userId);
 
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return emptyDb();
+    const raw =
+      localStorage.getItem(storageKey(userId)) ||
+      (userId === LOCAL_USER_ID ? localStorage.getItem("mytaskflow-db-v1") : null);
+    if (!raw) return emptyDb(userId);
     const parsed = JSON.parse(raw) as Partial<LocalDatabase>;
-    const fallback = emptyDb();
+    const fallback = emptyDb(userId);
     return {
       habits: parsed.habits ?? [],
       completions: parsed.completions ?? [],
@@ -68,13 +74,16 @@ export function loadLocalDb(): LocalDatabase {
       })),
     };
   } catch {
-    return emptyDb();
+    return emptyDb(userId);
   }
 }
 
-export function saveLocalDb(db: LocalDatabase): void {
+export function saveLocalDb(
+  db: LocalDatabase,
+  userId: string = LOCAL_USER_ID,
+): void {
   if (!canUseStorage()) return;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+  localStorage.setItem(storageKey(userId), JSON.stringify(db));
 }
 
 export function createId(): string {
