@@ -19,25 +19,14 @@ import { Habit } from '@/lib/types'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
+import { EmojiPicker } from '@/components/emoji-picker'
+import { HABIT_EMOJIS, resolveEmoji } from '@/lib/emoji-options'
 
 interface HabitFormProps {
   onSubmit: (habit: Partial<Habit>) => void
   editingHabit?: Habit | null
   onClose?: () => void
 }
-
-const icons = [
-  { value: 'exercise', label: 'Exercicio', emoji: '💪' },
-  { value: 'water', label: 'Agua', emoji: '💧' },
-  { value: 'reading', label: 'Leitura', emoji: '📚' },
-  { value: 'meditation', label: 'Meditacao', emoji: '🧘' },
-  { value: 'sleep', label: 'Sono', emoji: '😴' },
-  { value: 'coding', label: 'Programacao', emoji: '💻' },
-  { value: 'writing', label: 'Escrita', emoji: '✍️' },
-  { value: 'healthy_eating', label: 'Alimentacao', emoji: '🥗' },
-  { value: 'no_social_media', label: 'Sem Redes', emoji: '📵' },
-  { value: 'gratitude', label: 'Gratidao', emoji: '🙏' },
-]
 
 const colors = [
   { value: 'emerald', label: 'Verde', class: 'bg-emerald-500' },
@@ -51,7 +40,7 @@ export function HabitForm({ onSubmit, editingHabit, onClose }: HabitFormProps) {
   const [showForm, setShowForm] = useState(!!editingHabit)
   const [name, setName] = useState(editingHabit?.name || '')
   const [description, setDescription] = useState(editingHabit?.description || '')
-  const [icon, setIcon] = useState(editingHabit?.icon || 'exercise')
+  const [icon, setIcon] = useState(resolveEmoji(editingHabit?.icon))
   const [color, setColor] = useState(editingHabit?.color || 'emerald')
   const [frequency, setFrequency] = useState<'daily' | 'weekly' | 'monthly'>(
     editingHabit?.frequency || 'daily'
@@ -85,7 +74,7 @@ export function HabitForm({ onSubmit, editingHabit, onClose }: HabitFormProps) {
   const resetForm = () => {
     setName('')
     setDescription('')
-    setIcon('exercise')
+    setIcon('🎯')
     setColor('emerald')
     setFrequency('daily')
     setTargetCount(1)
@@ -148,26 +137,14 @@ export function HabitForm({ onSubmit, editingHabit, onClose }: HabitFormProps) {
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-2 sm:gap-4">
-        <div className="space-y-1.5 sm:space-y-2">
-          <Label className="text-xs sm:text-sm">Icone</Label>
-          <Select value={icon} onValueChange={setIcon}>
-            <SelectTrigger className="text-xs sm:text-sm h-8 sm:h-9">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {icons.map((i) => (
-                <SelectItem key={i.value} value={i.value}>
-                  <span className="flex items-center gap-1 sm:gap-2">
-                    <span>{i.emoji}</span>
-                    <span className="text-xs sm:text-sm">{i.label}</span>
-                  </span>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+      <EmojiPicker
+        value={icon}
+        onChange={setIcon}
+        options={HABIT_EMOJIS}
+        label="Emoji"
+      />
 
+      <div className="grid grid-cols-2 gap-2 sm:gap-4">
         <div className="space-y-1.5 sm:space-y-2">
           <Label className="text-xs sm:text-sm">Cor</Label>
           <Select value={color} onValueChange={setColor}>
@@ -186,9 +163,7 @@ export function HabitForm({ onSubmit, editingHabit, onClose }: HabitFormProps) {
             </SelectContent>
           </Select>
         </div>
-      </div>
 
-      <div className="grid grid-cols-2 gap-2 sm:gap-4">
         <div className="space-y-1.5 sm:space-y-2">
           <Label className="text-xs sm:text-sm">Frequencia</Label>
           <Select value={frequency} onValueChange={(v) => setFrequency(v as typeof frequency)}>
@@ -202,19 +177,19 @@ export function HabitForm({ onSubmit, editingHabit, onClose }: HabitFormProps) {
             </SelectContent>
           </Select>
         </div>
+      </div>
 
-        <div className="space-y-1.5 sm:space-y-2">
-          <Label htmlFor="target" className="text-xs sm:text-sm">Meta diaria</Label>
-          <Input
-            id="target"
-            type="number"
-            min={1}
-            max={99}
-            value={targetCount}
-            onChange={(e) => setTargetCount(Number(e.target.value))}
-            className="text-xs sm:text-sm h-8 sm:h-9"
-          />
-        </div>
+      <div className="space-y-1.5 sm:space-y-2">
+        <Label htmlFor="target" className="text-xs sm:text-sm">Meta diaria</Label>
+        <Input
+          id="target"
+          type="number"
+          min={1}
+          max={99}
+          value={targetCount}
+          onChange={(e) => setTargetCount(Number(e.target.value))}
+          className="text-xs sm:text-sm h-8 sm:h-9"
+        />
       </div>
 
       <div className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2">

@@ -354,7 +354,7 @@ export async function createHabit(habit: Partial<Habit>): Promise<void> {
       const payload = {
         name: habit.name,
         description: habit.description ?? null,
-        icon: habit.icon || "target",
+        icon: habit.icon || "🎯",
         color: habit.color || "#10b981",
         frequency: habit.frequency || "daily",
         target_count: habit.target_count || 1,
@@ -376,7 +376,7 @@ export async function createHabit(habit: Partial<Habit>): Promise<void> {
       const payload = {
         name: habit.name,
         description: habit.description ?? null,
-        icon: habit.icon || "target",
+        icon: habit.icon || "🎯",
         color: habit.color || "#10b981",
         frequency: habit.frequency || "daily",
         target_count: habit.target_count || 1,
@@ -408,6 +408,7 @@ export async function updateHabit(habit: Partial<Habit>): Promise<void> {
       const supabase = createBrowserClient();
       const updates: Partial<Habit> = {};
       if (habit.name !== undefined) updates.name = habit.name;
+      if (habit.icon !== undefined) updates.icon = habit.icon;
       if (habit.counts_for_points !== undefined) {
         updates.counts_for_points = habit.counts_for_points;
       }
@@ -425,6 +426,7 @@ export async function updateHabit(habit: Partial<Habit>): Promise<void> {
           ? {
               ...item,
               name: habit.name || item.name,
+              icon: habit.icon !== undefined ? habit.icon : item.icon,
               counts_for_points:
                 habit.counts_for_points !== undefined
                   ? habit.counts_for_points
@@ -875,6 +877,7 @@ export async function fetchReminders(): Promise<Reminder[]> {
       return (data || []).map((item: Reminder) => ({
         ...item,
         due_at: item.due_at ?? null,
+        icon: item.icon || '📝',
       }));
     },
     () => loadLocalDb(userId).reminders,
@@ -887,6 +890,7 @@ export async function createReminder(reminder: Partial<Reminder>): Promise<void>
   const payload = {
     title: reminder.title,
     notes: reminder.notes ?? null,
+    icon: reminder.icon || '📝',
     due_at: reminder.due_at ?? null,
     is_completed: false,
     completed_at: null,

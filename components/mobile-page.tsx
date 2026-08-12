@@ -15,6 +15,8 @@ import { RemindersPanel } from '@/components/reminders-panel'
 import { UserMenu } from '@/components/user-menu'
 import { AccountSecurityPanel } from '@/components/account-security-panel'
 import { HabitSortableList } from '@/components/habit-sortable-list'
+import { EmojiPicker } from '@/components/emoji-picker'
+import { HABIT_EMOJIS, resolveEmoji } from '@/lib/emoji-options'
 import { 
   Dialog, 
   DialogContent, 
@@ -125,11 +127,13 @@ export function MobilePage({
   const [showNewHabitForm, setShowNewHabitForm] = useState(false)
   const [newHabitName, setNewHabitName] = useState('')
   const [newHabitCountsForPoints, setNewHabitCountsForPoints] = useState(true)
+  const [newHabitIcon, setNewHabitIcon] = useState('🎯')
   const [selectedDateStr, setSelectedDateStr] = useState(formatLocalDate(new Date()))
   const [showCalendar, setShowCalendar] = useState(true)
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null)
   const [editHabitName, setEditHabitName] = useState('')
   const [editHabitCountsForPoints, setEditHabitCountsForPoints] = useState(true)
+  const [editHabitIcon, setEditHabitIcon] = useState('🎯')
   const [habitEditOpen, setHabitEditOpen] = useState(false)
   
   // Reward states
@@ -356,7 +360,7 @@ export function MobilePage({
     if (!newHabitName.trim()) return
     onCreateHabit({
       name: newHabitName.trim(),
-      icon: 'exercise',
+      icon: newHabitIcon,
       color: 'emerald',
       frequency: 'daily',
       target_count: 1,
@@ -364,6 +368,7 @@ export function MobilePage({
     })
     setNewHabitName('')
     setNewHabitCountsForPoints(true)
+    setNewHabitIcon('🎯')
     setShowNewHabitForm(false)
   }
 
@@ -371,6 +376,7 @@ export function MobilePage({
     setEditingHabit(habit)
     setEditHabitName(habit.name)
     setEditHabitCountsForPoints(habit.counts_for_points !== false)
+    setEditHabitIcon(resolveEmoji(habit.icon))
     setHabitEditOpen(true)
   }
 
@@ -380,11 +386,13 @@ export function MobilePage({
       id: editingHabit.id,
       name: editHabitName.trim(),
       counts_for_points: editHabitCountsForPoints,
+      icon: editHabitIcon,
     })
     setHabitEditOpen(false)
     setEditingHabit(null)
     setEditHabitName('')
     setEditHabitCountsForPoints(true)
+    setEditHabitIcon('🎯')
   }
 
   const activeDisciplines = disciplines.filter(isDisciplineOpen)
@@ -614,6 +622,12 @@ export function MobilePage({
                   className="w-full px-3 py-2 border rounded-lg text-sm"
                   autoFocus
                 />
+                <EmojiPicker
+                  value={newHabitIcon}
+                  onChange={setNewHabitIcon}
+                  options={HABIT_EMOJIS}
+                  label="Emoji"
+                />
                 <div className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2">
                   <div className="min-w-0">
                     <div className="text-sm font-medium">Vale pontuação</div>
@@ -636,6 +650,7 @@ export function MobilePage({
                       setShowNewHabitForm(false)
                       setNewHabitName('')
                       setNewHabitCountsForPoints(true)
+                      setNewHabitIcon('🎯')
                     }} 
                     variant="outline" 
                     className="flex-1"
@@ -894,7 +909,7 @@ export function MobilePage({
                 .map(habit => (
                   <div key={habit.id} className="flex items-center justify-between">
                     <span className="text-xs flex items-center gap-2">
-                      <span>{habit.icon === 'exercise' ? '💪' : '📚'}</span>
+                      <span>{resolveEmoji(habit.icon)}</span>
                       <span className="truncate">{habit.name}</span>
                     </span>
                     <Badge variant="secondary" className="text-xs">{habit.count}</Badge>
@@ -931,6 +946,7 @@ export function MobilePage({
             setEditingHabit(null)
             setEditHabitName('')
             setEditHabitCountsForPoints(true)
+            setEditHabitIcon('🎯')
           }
         }}
       >
@@ -938,7 +954,7 @@ export function MobilePage({
           <DialogHeader>
             <DialogTitle>Editar Hábito</DialogTitle>
             <DialogDescription>
-              Altere o nome e se o hábito vale pontuação.
+              Altere o nome, emoji e se o hábito vale pontuação.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
@@ -953,6 +969,12 @@ export function MobilePage({
                 autoFocus
               />
             </div>
+            <EmojiPicker
+              value={editHabitIcon}
+              onChange={setEditHabitIcon}
+              options={HABIT_EMOJIS}
+              label="Emoji"
+            />
             <div className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2">
               <div className="min-w-0">
                 <Label htmlFor="edit-habit-points">Vale pontuação</Label>

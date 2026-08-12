@@ -1,13 +1,15 @@
 'use client'
 
 import { useState } from 'react'
-import { Bell, Check, Plus, Trash2 } from 'lucide-react'
+import { Bell, Plus, Trash2 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
+import { EmojiPicker } from '@/components/emoji-picker'
 import { Reminder } from '@/lib/types'
+import { REMINDER_EMOJIS, resolveEmoji } from '@/lib/emoji-options'
 import { cn } from '@/lib/utils'
 import { formatDeadline, formatLocalDate } from '@/lib/discipline'
 
@@ -29,11 +31,20 @@ export function RemindersPanel({
   const [title, setTitle] = useState('')
   const [notes, setNotes] = useState('')
   const [dueAt, setDueAt] = useState('')
+  const [icon, setIcon] = useState('📝')
   const [showForm, setShowForm] = useState(false)
 
   const pending = reminders.filter((item) => !item.is_completed)
   const completed = reminders.filter((item) => item.is_completed)
   const today = formatLocalDate(new Date())
+
+  const resetForm = () => {
+    setTitle('')
+    setNotes('')
+    setDueAt('')
+    setIcon('📝')
+    setShowForm(false)
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -42,11 +53,9 @@ export function RemindersPanel({
       title: title.trim(),
       notes: notes.trim() || null,
       due_at: dueAt || null,
+      icon,
     })
-    setTitle('')
-    setNotes('')
-    setDueAt('')
-    setShowForm(false)
+    resetForm()
   }
 
   return (
@@ -84,6 +93,12 @@ export function RemindersPanel({
               required
               autoFocus
             />
+            <EmojiPicker
+              value={icon}
+              onChange={setIcon}
+              options={REMINDER_EMOJIS}
+              label="Emoji"
+            />
             <Textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
@@ -110,12 +125,7 @@ export function RemindersPanel({
                 variant="outline"
                 className="flex-1"
                 size="sm"
-                onClick={() => {
-                  setShowForm(false)
-                  setTitle('')
-                  setNotes('')
-                  setDueAt('')
-                }}
+                onClick={resetForm}
               >
                 Cancelar
               </Button>
@@ -138,10 +148,10 @@ export function RemindersPanel({
               <button
                 type="button"
                 onClick={() => onCompleteReminder(reminder.id)}
-                className="mt-0.5 h-9 w-9 rounded-xl bg-muted hover:bg-primary/10 flex items-center justify-center flex-shrink-0"
+                className="mt-0.5 h-9 w-9 rounded-xl bg-muted hover:bg-primary/10 flex items-center justify-center flex-shrink-0 text-lg"
                 aria-label="Marcar como concluído"
               >
-                <Check className="h-4 w-4 text-muted-foreground" />
+                {resolveEmoji(reminder.icon, '📝')}
               </button>
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-medium">{reminder.title}</div>
@@ -151,14 +161,16 @@ export function RemindersPanel({
                   </div>
                 )}
                 {reminder.due_at && (
-                  <div className={cn(
-                    'text-[11px] mt-1 font-medium',
-                    reminder.due_at < today
-                      ? 'text-destructive'
-                      : reminder.due_at === today
-                        ? 'text-primary'
-                        : 'text-muted-foreground',
-                  )}>
+                  <div
+                    className={cn(
+                      'text-[11px] mt-1 font-medium',
+                      reminder.due_at < today
+                        ? 'text-destructive'
+                        : reminder.due_at === today
+                          ? 'text-primary'
+                          : 'text-muted-foreground',
+                    )}
+                  >
                     {reminder.due_at < today
                       ? `Atrasado · ${formatDeadline(reminder.due_at)}`
                       : reminder.due_at === today
@@ -185,17 +197,15 @@ export function RemindersPanel({
           {completed.map((reminder) => (
             <div
               key={reminder.id}
-              className={cn(
-                'flex items-start gap-2 rounded-xl border border-border/40 p-2 opacity-70',
-              )}
+              className="flex items-start gap-2 rounded-xl border border-border/40 p-2 opacity-70"
             >
               <button
                 type="button"
                 onClick={() => onUncompleteReminder(reminder.id)}
-                className="mt-0.5 h-9 w-9 rounded-xl bg-green-500 text-white flex items-center justify-center flex-shrink-0"
+                className="mt-0.5 h-9 w-9 rounded-xl bg-green-500/15 text-lg flex items-center justify-center flex-shrink-0"
                 aria-label="Desmarcar concluído"
               >
-                <Check className="h-4 w-4" />
+                {resolveEmoji(reminder.icon, '📝')}
               </button>
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-medium line-through">{reminder.title}</div>

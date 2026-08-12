@@ -22,6 +22,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Habit } from '@/lib/types'
 import { cn } from '@/lib/utils'
+import { resolveEmoji } from '@/lib/emoji-options'
 
 type HabitSortableListProps = {
   habits: Habit[]
@@ -91,6 +92,9 @@ function SortableHabitRow({
       </button>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5 min-w-0">
+          <span className="text-base leading-none shrink-0" aria-hidden>
+            {resolveEmoji(habit.icon)}
+          </span>
           <div className="text-sm font-medium truncate">{habit.name}</div>
           {habit.counts_for_points === false && (
             <Badge variant="outline" className="text-[10px] px-1.5 py-0 shrink-0 font-normal">

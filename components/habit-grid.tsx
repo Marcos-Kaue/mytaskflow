@@ -6,7 +6,9 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
+import { EmojiPicker } from '@/components/emoji-picker'
 import { Habit, HabitCompletion } from '@/lib/types'
+import { HABIT_EMOJIS, resolveEmoji } from '@/lib/emoji-options'
 import { cn } from '@/lib/utils'
 import {
   Dialog,
@@ -80,9 +82,11 @@ export function HabitGrid({
 }: HabitGridProps) {
   const [newHabitName, setNewHabitName] = useState('')
   const [newHabitCountsForPoints, setNewHabitCountsForPoints] = useState(true)
+  const [newHabitIcon, setNewHabitIcon] = useState('🎯')
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null)
   const [editName, setEditName] = useState('')
   const [editCountsForPoints, setEditCountsForPoints] = useState(true)
+  const [editIcon, setEditIcon] = useState('🎯')
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [processingCells, setProcessingCells] = useState<Set<string>>(new Set())
@@ -147,7 +151,7 @@ export function HabitGrid({
     if (!newHabitName.trim()) return
     onCreateHabit({
       name: newHabitName.trim(),
-      icon: '',
+      icon: newHabitIcon,
       color: '#000000',
       frequency: 'daily',
       target_count: 1,
@@ -155,6 +159,7 @@ export function HabitGrid({
     })
     setNewHabitName('')
     setNewHabitCountsForPoints(true)
+    setNewHabitIcon('🎯')
     setIsDialogOpen(false)
   }
   
@@ -164,10 +169,12 @@ export function HabitGrid({
       id: editingHabit.id,
       name: editName.trim(),
       counts_for_points: editCountsForPoints,
+      icon: editIcon,
     })
     setEditingHabit(null)
     setEditName('')
     setEditCountsForPoints(true)
+    setEditIcon('🎯')
     setIsEditDialogOpen(false)
   }
   
@@ -175,6 +182,7 @@ export function HabitGrid({
     setEditingHabit(habit)
     setEditName(habit.name)
     setEditCountsForPoints(habit.counts_for_points !== false)
+    setEditIcon(resolveEmoji(habit.icon))
     setIsEditDialogOpen(true)
   }
   
@@ -312,7 +320,10 @@ export function HabitGrid({
                 <td className="sticky left-0 z-10 bg-card border border-border p-1 min-w-[120px] sm:min-w-[150px]">
                   <div className="flex items-center justify-between gap-1">
                     <div className="min-w-0 flex-1">
-                      <span className="truncate text-xs sm:text-sm block">{habit.name}</span>
+                      <span className="truncate text-xs sm:text-sm block">
+                        <span className="mr-1" aria-hidden>{resolveEmoji(habit.icon)}</span>
+                        {habit.name}
+                      </span>
                       {habit.counts_for_points === false && (
                         <span className="text-[10px] text-muted-foreground">Sem pontos</span>
                       )}
@@ -526,7 +537,10 @@ export function HabitGrid({
                   <td className="sticky left-0 z-10 bg-card border border-border p-1 min-w-[80px] max-w-[100px]">
                     <div className="flex items-center justify-between gap-1">
                       <div className="min-w-0 flex-1">
-                        <span className="truncate text-xs block">{habit.name}</span>
+                        <span className="truncate text-xs block">
+                          <span className="mr-0.5" aria-hidden>{resolveEmoji(habit.icon)}</span>
+                          {habit.name}
+                        </span>
                         {habit.counts_for_points === false && (
                           <span className="text-[9px] text-muted-foreground">Sem pts</span>
                         )}
@@ -694,6 +708,7 @@ export function HabitGrid({
           if (!open) {
             setNewHabitName('')
             setNewHabitCountsForPoints(true)
+            setNewHabitIcon('🎯')
           }
         }}
       >
@@ -713,6 +728,12 @@ export function HabitGrid({
               value={newHabitName}
               onChange={(e) => setNewHabitName(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleCreateHabit()}
+            />
+            <EmojiPicker
+              value={newHabitIcon}
+              onChange={setNewHabitIcon}
+              options={HABIT_EMOJIS}
+              label="Emoji"
             />
             <div className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2">
               <div className="min-w-0">
@@ -743,6 +764,7 @@ export function HabitGrid({
             setEditingHabit(null)
             setEditName('')
             setEditCountsForPoints(true)
+            setEditIcon('🎯')
           }
         }}
       >
@@ -756,6 +778,12 @@ export function HabitGrid({
               value={editName}
               onChange={(e) => setEditName(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleEditHabit()}
+            />
+            <EmojiPicker
+              value={editIcon}
+              onChange={setEditIcon}
+              options={HABIT_EMOJIS}
+              label="Emoji"
             />
             <div className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2">
               <div className="min-w-0">

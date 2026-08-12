@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Habit, HabitCompletion } from '@/lib/types'
 import { cn } from '@/lib/utils'
+import { resolveEmoji } from '@/lib/emoji-options'
 
 interface HabitCardProps {
   habit: Habit
@@ -20,20 +21,6 @@ interface HabitCardProps {
   onToggle: (habitId: string, isCompleted: boolean) => void
   onDelete: (habitId: string) => void
   onEdit: (habit: Habit) => void
-}
-
-const iconMap: Record<string, string> = {
-  exercise: '💪',
-  water: '💧',
-  reading: '📚',
-  meditation: '🧘',
-  sleep: '😴',
-  coding: '💻',
-  writing: '✍️',
-  healthy_eating: '🥗',
-  no_social_media: '📵',
-  gratitude: '🙏',
-  default: '✨',
 }
 
 export function HabitCard({ habit, completions, onToggle, onDelete, onEdit }: HabitCardProps) {
@@ -63,7 +50,7 @@ export function HabitCard({ habit, completions, onToggle, onDelete, onEdit }: Ha
     onToggle(habit.id, !isCompletedToday)
   }
   
-  const icon = iconMap[habit.icon] || iconMap.default
+  const icon = resolveEmoji(habit.icon, '✨')
   const progressPercentage = Math.min((currentCount / habit.target_count) * 100, 100)
   
   return (

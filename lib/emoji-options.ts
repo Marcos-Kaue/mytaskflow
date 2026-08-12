@@ -1,0 +1,86 @@
+/** Emojis prontos para celular (sem teclado de emoji). */
+
+export const HABIT_EMOJIS = [
+  '💪',
+  '🏃',
+  '💧',
+  '📚',
+  '🧘',
+  '😴',
+  '💻',
+  '✍️',
+  '🥗',
+  '📵',
+  '🙏',
+  '🎯',
+  '🧠',
+  '🦷',
+  '🧹',
+  '🛏️',
+  '🚶',
+  '🚴',
+  '🏋️',
+  '🍎',
+  '☕',
+  '🚭',
+  '☀️',
+  '🌙',
+  '🎵',
+  '🎹',
+  '🎨',
+  '📝',
+  '💊',
+  '❤️',
+] as const
+
+export const REMINDER_EMOJIS = [
+  '📝',
+  '📞',
+  '📅',
+  '🛒',
+  '💊',
+  '🦷',
+  '💼',
+  '🏠',
+  '✉️',
+  '💳',
+  '🚗',
+  '✈️',
+  '🎁',
+  '🎂',
+  '🔔',
+  '⏰',
+  '💡',
+  '📌',
+  '✅',
+  '⭐',
+] as const
+
+const LEGACY_HABIT_ICONS: Record<string, string> = {
+  exercise: '💪',
+  water: '💧',
+  reading: '📚',
+  meditation: '🧘',
+  sleep: '😴',
+  coding: '💻',
+  writing: '✍️',
+  healthy_eating: '🥗',
+  no_social_media: '📵',
+  gratitude: '🙏',
+  target: '🎯',
+  movie: '🎬',
+  food: '🍕',
+  game: '🎮',
+  shopping: '🛍️',
+  trip: '✈️',
+  relax: '🛋️',
+  gift: '🎁',
+}
+
+export function resolveEmoji(
+  icon: string | null | undefined,
+  fallback = '🎯',
+): string {
+  if (!icon) return fallback
+  return LEGACY_HABIT_ICONS[icon] || icon
+}
