@@ -4,10 +4,22 @@
   "description": "Hábitos, lembretes e disciplina",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#7C3AED",
-  "theme_color": "#7C3AED",
+  "background_color": "#6366f1",
+  "theme_color": "#6366f1",
   "lang": "pt-BR",
   "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
     {
       "src": "/mytaskflow-icon.svg",
       "sizes": "any",

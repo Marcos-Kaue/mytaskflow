@@ -475,7 +475,7 @@ export default function HomePage() {
     <div className="min-h-screen bg-background flex flex-col">
       <StorageBanner status={backendStatus} />
       <DateAlerts disciplines={disciplines} reminders={reminders} />
-      <header className="sticky top-0 z-40 bg-primary text-primary-foreground shadow-lg">
+      <header className="sticky top-0 z-40 bg-gradient-to-br from-primary to-accent text-primary-foreground shadow-lg">
         <div className="mx-auto max-w-5xl px-3 sm:px-4 py-4 sm:py-5">
           <div className="flex items-center justify-center gap-3 mb-3">
             <Logo size={44} className="drop-shadow-lg" />

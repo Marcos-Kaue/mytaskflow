@@ -360,7 +360,7 @@ export function MobilePage({
     <div className="min-h-screen bg-background pb-20">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full gap-0">
         <div className="sticky top-0 z-40 bg-background">
-          <header className="bg-primary text-primary-foreground shadow-lg">
+          <header className="bg-gradient-to-br from-primary to-accent text-primary-foreground shadow-lg">
             <div className="px-4 py-3">
               <div className="flex items-center justify-between mb-3 gap-2">
                 <div className="flex items-center gap-2 min-w-0">

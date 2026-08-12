@@ -25,8 +25,8 @@ self.addEventListener('message', (event) => {
   event.waitUntil(
     self.registration.showNotification(data.title || 'MyTaskFlow', {
       body: data.body || '',
-      icon: '/mytaskflow-icon.svg',
-      badge: '/mytaskflow-icon.svg',
+      icon: '/icon-192x192.png',
+      badge: '/icon-32x32.png',
       tag: data.tag || 'mytaskflow',
       renotify: true,
     }),

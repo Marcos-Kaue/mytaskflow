@@ -20,11 +20,13 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
+      { url: '/icon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/icon-192x192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icon-512x512.png', sizes: '512x512', type: 'image/png' },
       { url: '/mytaskflow-icon.svg', type: 'image/svg+xml' },
-      { url: '/mytaskflow-icon.png', type: 'image/png' },
     ],
     apple: '/apple-touch-icon.png',
-    shortcut: '/mytaskflow-icon.svg',
+    shortcut: '/icon-32x32.png',
   },
 }
 
@@ -34,8 +36,8 @@ export const viewport = {
   maximumScale: 5,
   userScalable: true,
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#7C3AED' },
-    { media: '(prefers-color-scheme: dark)', color: '#7C3AED' },
+    { media: '(prefers-color-scheme: light)', color: '#6366f1' },
+    { media: '(prefers-color-scheme: dark)', color: '#6366f1' },
   ],
 }
 

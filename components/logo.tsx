@@ -17,7 +17,7 @@ export function Logo({ className = '', size = 32, variant = 'icon' }: LogoProps)
           alt="MyTaskFlow Logo"
           width={size}
           height={size}
-          className={`rounded-xl ${className}`}
+          className={`rounded-full ${className}`}
           priority
         />
         <span className="font-bold text-lg text-primary">
@@ -33,7 +33,7 @@ export function Logo({ className = '', size = 32, variant = 'icon' }: LogoProps)
       alt="MyTaskFlow Logo"
       width={size}
       height={size}
-      className={`rounded-xl shadow-lg ${className}`}
+      className={`rounded-full shadow-lg ${className}`}
       priority
     />
   )
