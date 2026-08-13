@@ -1,5 +1,5 @@
 import { Discipline, Reminder } from '@/lib/types'
-import { formatDeadline, formatLocalDate, isDisciplineOpen } from '@/lib/discipline'
+import { formatDeadline, formatLocalDate, formatReminderDue, isDisciplineOpen } from '@/lib/discipline'
 
 export type UpcomingAlert = {
   id: string
@@ -45,7 +45,7 @@ export function getUpcomingAlerts(
       id: reminder.id,
       tag: `reminder-${reminder.id}-${reminder.due_at}`,
       title: daysLeft === 0 ? 'Lembrete para hoje' : 'Lembrete para amanhã',
-      body: `${reminder.title} · ${formatDeadline(reminder.due_at)}`,
+      body: `${reminder.title} · ${formatReminderDue(reminder.due_at, reminder.due_time)}`,
       daysLeft,
     })
   }

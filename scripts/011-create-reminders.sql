@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS reminders (
   notes text,
   icon text DEFAULT '📝',
   due_at date,
+  due_time time,
   is_completed boolean DEFAULT false,
   completed_at timestamptz,
   created_at timestamptz DEFAULT now()

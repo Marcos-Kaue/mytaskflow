@@ -75,6 +75,7 @@ export function loadLocalDb(userId: string = LOCAL_USER_ID): LocalDatabase {
       reminders: (parsed.reminders ?? []).map((item) => ({
         ...item,
         due_at: item.due_at ?? null,
+        due_time: item.due_time ?? null,
         icon: item.icon || '📝',
       })),
     };

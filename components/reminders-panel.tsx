@@ -11,7 +11,7 @@ import { EmojiPicker } from '@/components/emoji-picker'
 import { Reminder } from '@/lib/types'
 import { REMINDER_EMOJIS, resolveEmoji } from '@/lib/emoji-options'
 import { cn } from '@/lib/utils'
-import { formatDeadline, formatLocalDate } from '@/lib/discipline'
+import { formatDueTime, formatLocalDate, formatReminderDue, isReminderOverdue } from '@/lib/discipline'
 
 interface RemindersPanelProps {
   reminders: Reminder[]
@@ -31,6 +31,7 @@ export function RemindersPanel({
   const [title, setTitle] = useState('')
   const [notes, setNotes] = useState('')
   const [dueAt, setDueAt] = useState('')
+  const [dueTime, setDueTime] = useState('')
   const [icon, setIcon] = useState('📝')
   const [showForm, setShowForm] = useState(false)
 
@@ -42,6 +43,7 @@ export function RemindersPanel({
     setTitle('')
     setNotes('')
     setDueAt('')
+    setDueTime('')
     setIcon('📝')
     setShowForm(false)
   }
@@ -53,6 +55,7 @@ export function RemindersPanel({
       title: title.trim(),
       notes: notes.trim() || null,
       due_at: dueAt || null,
+      due_time: dueAt && dueTime ? dueTime : null,
       icon,
     })
     resetForm()
@@ -71,7 +74,7 @@ export function RemindersPanel({
           </Badge>
         </div>
         <p className="text-xs text-muted-foreground">
-          Anotações rápidas, com data opcional. Não entram na pontuação.
+          Anotações rápidas, com data e hora opcionais. Não entram na pontuação.
         </p>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -106,14 +109,27 @@ export function RemindersPanel({
               rows={2}
             />
             <div className="space-y-1">
-              <Input
-                type="date"
-                value={dueAt}
-                onChange={(e) => setDueAt(e.target.value)}
-                aria-label="Data do lembrete"
-              />
+              <div className="grid grid-cols-2 gap-2">
+                <Input
+                  type="date"
+                  value={dueAt}
+                  onChange={(e) => {
+                    const nextDate = e.target.value
+                    setDueAt(nextDate)
+                    if (!nextDate) setDueTime('')
+                  }}
+                  aria-label="Data do lembrete"
+                />
+                <Input
+                  type="time"
+                  value={dueTime}
+                  onChange={(e) => setDueTime(e.target.value)}
+                  disabled={!dueAt}
+                  aria-label="Hora do lembrete"
+                />
+              </div>
               <p className="text-[11px] text-muted-foreground">
-                Data opcional. O aviso chega no dia e na véspera.
+                Data e hora opcionais. O aviso chega no dia e na véspera.
               </p>
             </div>
             <div className="flex gap-2">
@@ -164,18 +180,20 @@ export function RemindersPanel({
                   <div
                     className={cn(
                       'text-[11px] mt-1 font-medium',
-                      reminder.due_at < today
+                      isReminderOverdue(reminder.due_at, reminder.due_time)
                         ? 'text-destructive'
                         : reminder.due_at === today
                           ? 'text-primary'
                           : 'text-muted-foreground',
                     )}
                   >
-                    {reminder.due_at < today
-                      ? `Atrasado · ${formatDeadline(reminder.due_at)}`
+                    {isReminderOverdue(reminder.due_at, reminder.due_time)
+                      ? `Atrasado · ${formatReminderDue(reminder.due_at, reminder.due_time)}`
                       : reminder.due_at === today
-                        ? 'Hoje'
-                        : formatDeadline(reminder.due_at)}
+                        ? formatDueTime(reminder.due_time)
+                          ? `Hoje · ${formatDueTime(reminder.due_time)}`
+                          : 'Hoje'
+                        : formatReminderDue(reminder.due_at, reminder.due_time)}
                   </div>
                 )}
               </div>

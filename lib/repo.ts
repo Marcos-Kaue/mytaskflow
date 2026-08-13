@@ -877,6 +877,7 @@ export async function fetchReminders(): Promise<Reminder[]> {
       return (data || []).map((item: Reminder) => ({
         ...item,
         due_at: item.due_at ?? null,
+        due_time: item.due_time ?? null,
         icon: item.icon || '📝',
       }));
     },
@@ -892,6 +893,7 @@ export async function createReminder(reminder: Partial<Reminder>): Promise<void>
     notes: reminder.notes ?? null,
     icon: reminder.icon || '📝',
     due_at: reminder.due_at ?? null,
+    due_time: reminder.due_at ? reminder.due_time ?? null : null,
     is_completed: false,
     completed_at: null,
     user_id: userId,

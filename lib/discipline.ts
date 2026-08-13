@@ -25,6 +25,36 @@ export function formatDeadline(dateStr: string | null): string {
   return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
+export function formatDueTime(timeStr: string | null | undefined): string | null {
+  if (!timeStr) return null
+  const match = timeStr.match(/^(\d{1,2}):(\d{2})/)
+  if (!match) return null
+  return `${match[1].padStart(2, '0')}:${match[2]}`
+}
+
+export function formatReminderDue(dueAt: string | null, dueTime?: string | null): string {
+  const date = formatDeadline(dueAt)
+  const time = formatDueTime(dueTime)
+  return time ? `${date} · ${time}` : date
+}
+
+export function isReminderOverdue(
+  dueAt: string,
+  dueTime: string | null | undefined,
+  now = new Date(),
+): boolean {
+  const today = formatLocalDate(now)
+  const datePart = dueAt.slice(0, 10)
+  if (datePart < today) return true
+  if (datePart > today) return false
+  const time = formatDueTime(dueTime)
+  if (!time) return false
+  const [hours, minutes] = time.split(':').map(Number)
+  const due = new Date(now)
+  due.setHours(hours, minutes, 0, 0)
+  return now.getTime() > due.getTime()
+}
+
 export function getDisciplineProgress(discipline: Discipline, totalPoints: number) {
   const today = formatLocalDate(new Date())
   const target = Math.max(discipline.target_points || 0, 0)

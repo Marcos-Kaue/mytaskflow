@@ -66,6 +66,7 @@ export interface Reminder {
   notes: string | null
   icon: string
   due_at: string | null
+  due_time: string | null
   is_completed: boolean
   completed_at: string | null
   created_at: string
